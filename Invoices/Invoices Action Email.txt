@@ -1,0 +1,72 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page : Action_e-mail - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+     });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should click and verify CHANGE CUSTOMER', async () => {
+        await inv.clickonInvoiceTab();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+      });
+    it('should set Customer Number in the search Bar', async () => {
+        await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(inv.readExcelInv(1, 'B2'));
+       });
+    it('should click on search button', async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await expect(($$('span.k-input').get(2)).isDisplayed()).toBeTruthy();
+       });
+    // 1039_iRec_InvoiceActions_Ability to Email Invoice PDF-For Renewal only_008 / 009/ 010
+    it('should click on Invoice options Dropdown', async () => {
+        await browser.sleep(2000);  // used js in next step to click on checkbox so it required pause
+        await inv.selectInvoiceAll();
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        await expect(($$('li.k-item').get(0)).isDisplayed()).toBeTruthy();
+        });
+    it('should select Email Selected Receipt as PDF from dropdown options', async () => {
+        const emailSelectedInvoice = $$('li.k-item').get(0);
+        await app.waitForEcClickable(emailSelectedInvoice);
+        await emailSelectedInvoice.click();
+        await expect($('input[placeholder="Enter email address(es)"]').isDisplayed()).toBeTruthy();
+        });
+    it('should enter Email details and click on send button', async () => {
+        await browser.sleep(2000);
+        await inv.enterEmail(paysrc.readExcelpaysrc(0, 'B17'));
+        await inv.enterBody(paysrc.readExcelpaysrc(0, 'B18'));
+        const sendButton = $('button.k-button.k-primary.right.col.s2');
+        await app.waitForEcClickable(sendButton);
+        await sendButton.click();
+        await app.waitForMainLoader();
+        browser.sleep(3000);
+        });
+
+});

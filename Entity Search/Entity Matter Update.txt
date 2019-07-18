@@ -1,0 +1,203 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Entity } from './EntitySearch.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Entity Page: Entity Matter Update - ', () => {
+    let app: AppPage;
+    let ent: Entity;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        ent = new Entity();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should change customer', async () => {
+        await app.cancelCustomerOrInvoice();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(ent.readExcelEntity(2, 'B2'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(ent.readExcelEntity(2, 'B2'));
+    });
+    // Able to select the Entity Search in the header menu.
+    it('should Click on Entity Search and verify Entity Search tab is open', async () => {
+        await ent.clickonEntitySearchTab();
+        expect(browser.getCurrentUrl()).toContain(data.EntitySearch.EntityLink);
+        expect($('.tabselected').getText()).toBe(data.EntitySearch.EntitySearch);
+    });
+    // Able to search Entity by Entity No
+    it('should search Entity by Entity No', async () => {
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await browser.sleep(3000);
+        await app.waitForMainLoader();
+        const EntityResult = $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+    });
+    // Able to see the results for selected Entity
+    it('should Able to see the results for selected Entity', async () => {
+        const entityResult = element(by.className('k-pager-info k-label'));
+        await app.waitForEcVisible(entityResult);
+        expect((entityResult).isDisplayed()).toBeTruthy();
+    });
+    // Able to update Matter# for invoice by clicking on Pencil icon
+    it('should Able to update Matter# for invoice by clicking on Pencil icon', async () => {
+        const checkboxes = element.all(by.className('k-checkbox-label'));
+        const checkboxes_count = await checkboxes.count();
+        await browser.executeScript('document.getElementsByClassName("k-icon k-i-edit col s2 no-padding left").item(1).click()');
+        await app.waitForMainLoader();
+        await expect($('.k-dialog-title').getText()).toBe(data.EntitySearch.UpdateInvoice);
+        await $('.cscForm .ng-untouched').sendKeys(ent.readExcelEntity(2, 'B4'));
+        const checkbox = element.all(by.className('k-checkbox-label')).get(checkboxes_count);
+        await browser.executeScript('arguments[0].click();', checkbox);
+        await $('.k-primary.header-button').click();
+        await $('.k-tertiary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect($$('div.toaster-body.csc-success').isDisplayed()).toBeTruthy();
+        const closePopup = $('[aria-label="Close"]');
+        await browser.executeScript('arguments[0].click();', closePopup);
+        await app.waitForMainLoader();
+    });
+    // Abl to update the Matter# for multiple invoices by selecting 'Update Bulk Matter#' from the Invoice options
+    it('should update matter number for multiple invoices by selecting Update Bulk Matter# from the Invoice options', async () => {
+        await inv.clickSearchButton();
+        await browser.sleep(2000);
+        await app.waitForMainLoader();
+        const checkboxes = element.all(by.className('k-checkbox-label'));
+        const checkboxes_count = await checkboxes.count();
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(1).click()');
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(3).click()');
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(1000);
+        const InvoiceOptionDropdown = await $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await $$('span.k-input').get(2).click();
+        const bulkUpdateMatter = $$('li.k-item').get(2);
+        await app.waitForEcClickable(bulkUpdateMatter);
+        await bulkUpdateMatter.click();
+        await app.waitForMainLoader();
+        await expect($('.k-dialog-title').getText()).toBe(data.EntitySearch.UpdateInvoice);
+        await $('.cscForm .ng-untouched').sendKeys(ent.readExcelEntity(2, 'B5'));
+        const checkbox = element.all(by.className('k-checkbox-label')).get(checkboxes_count);
+        await browser.executeScript('arguments[0].click();', checkbox);
+        await $('.k-primary.header-button').click();
+        await $('.k-tertiary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect($$('div.toaster-body.csc-success').isDisplayed()).toBeTruthy();
+        const closePopup = $('[aria-label="Close"]');
+        await browser.executeScript('arguments[0].click();', closePopup);
+        await app.waitForMainLoader();
+    });
+    // Able to see Multiple if more than one Order# is there per invoice
+    it('should Able to see Multiple if more than one Order# is there per invoice', async () => { // test data not available
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntityforMultiple();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(2000);
+        const orderNo = ent.readExcelEntity(2, 'B6');
+        await ent.orderNo(orderNo);
+        await browser.sleep(1000);
+        await expect(await element(by.xpath('//tbody/tr[1]/td[10]')).getText()).toContain(orderNo);
+        await browser.sleep(1000);
+    });
+    // Able to see Multiple if more than one Matter# is there per invoice
+    it('should Able to see Multiple if more than one Matter# is there per invoice', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntityforMultiple();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(2000);
+        const matter = ent.readExcelEntity(2, 'B6');
+        await ent.matter(matter);
+        await browser.sleep(1000);
+        // tslint:disable-next-line:max-line-length
+        await expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="2"]//td[12]//div[1]/span[1]')).getText()).toContain(matter);
+        await browser.sleep(1000);
+    });
+    // Able to see Multiple if more than one receipt# is there per invoice
+    it('should Able to see Multiple if more than one receipt# is there per invoice', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(2000);
+        const receiptNo = ent.readExcelEntity(2, 'B6');
+        await ent.filterRecipttNo(receiptNo);
+        await browser.sleep(1000);
+        await expect(await element(by.xpath('//tbody/tr[1]/td[5]')).getText()).toContain(receiptNo);
+        await browser.sleep(1000);
+    });
+    // Able to see Multiple if more than one Subject Ref is there per invoice
+    it('should Able to see Multiple if more than one Subject Ref is there per invoice', async () => { // test data not available
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntityforMultiple();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(2000);
+        const subject = ent.readExcelEntity(2, 'B6');
+        await ent.subject(subject);
+        await browser.sleep(1000);
+        expect(await element(by.xpath('(//tbody/tr[1]/td[11]/span)[1]')).getText()).toContain(subject);
+        await browser.sleep(1000);
+    });
+
+});

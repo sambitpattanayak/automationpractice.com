@@ -1,0 +1,77 @@
+import { browser, by, element, $ } from 'protractor';
+const data = require('../app.e2e-test_data.json');
+export class Dashboard {
+
+  /**
+   * @name clickSelectAllCheckbox
+   * @description It will click on Select All check box
+   * @returns Promise
+   */
+  async clickSelectAllCheckbox() {
+    // tslint:disable-next-line:quotemark
+    return await $('.csc-secondary-color-dark-gray.no-padding').click();
+    // return await $('#selectAll').click();
+  }
+
+ /**
+   * @name clickPaySelectedButton
+   * @description It will click on Pay Selected Button
+   * @returns Promise
+   */
+  async clickPaySelectedButton() {
+    // tslint:disable-next-line:quotemark
+    return await element(by.buttonText('PAY SELECTED')).click();
+  }
+
+  /**
+   * @name clicksViewSelectedInvoicesButton
+   * @description It will click on View Selected Invoices Button
+   * @returns Promise
+   */
+  async clickViewSelectedInvoicesButton() {
+    // tslint:disable-next-line:quotemark
+    return await element(by.buttonText('VIEW SELECTED INVOICES')).click();
+  }
+
+   /**
+   * @name checkAgeingBucketsColors
+   * @description It will check colors of ageing buckets
+   * @returns Promise
+   */
+  async checkAgeingBucketsColors() {
+    const a = await(element(by.xpath('//span[contains(text(),"Current")]')).getText());
+    if (a === data.dashboard.static_text19) {
+    // tslint:disable-next-line:max-line-length
+    expect(await (element(by.xpath('//div[@class="col xl6 l6 m6 s12 no-padding mt5 mr5 mb5 ml5"]//div[2]//label[1]//span[1]//span[1]'))) .getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+    }
+    const b = await(element(by.xpath('//span[contains(text(),"1-30")]')).getText());
+    if (b === data.dashboard.static_text120) {
+    // tslint:disable-next-line:max-line-length
+    expect(await (element(by.xpath('//div[@class="col xl6 l6 m6 s12 no-padding mt5 mr5 mb5 ml5"]//div[3]//label[1]//span[1]//span[1]'))) .getCssValue('background-color')).toContain(data.dashboard.color_green);
+    }
+    const c = await(element(by.xpath('//span[contains(text(),"31-60")]')).getText());
+    if (c === data.dashboard.static_text21) {
+    // tslint:disable-next-line:max-line-length
+    expect(await (element(by.xpath('//div[@class="col xl6 l6 m6 s12 no-padding mt5 mr5 mb5 ml5"]//div[4]//label[1]//span[1]//span[1]'))) .getCssValue('background-color')).toContain(data.dashboard.color_blue);
+    }
+    const d = await(element(by.xpath('//span[contains(text(),"61-90")]')).getText());
+    if (d === data.dashboard.static_text22) {
+    // tslint:disable-next-line:max-line-length
+    expect(await (element(by.xpath('//div[@class="col xl6 l6 m6 s12 no-padding mt5 mr5 mb5 ml5"]//div[5]//label[1]//span[1]//span[1]'))) .getCssValue('background-color')).toContain(data.dashboard.color_yellow);
+    }
+    const e = await(element(by.xpath('//span[contains(text(),"90+")]')).getText());
+    if (e === data.dashboard.static_text23) {
+    // tslint:disable-next-line:max-line-length
+    expect(await (element(by.xpath('//div[@class="col xl6 l6 m6 s12 no-padding mt5 mr5 mb5 ml5"]//div[6]//label[1]//span[1]//span[1]'))) .getCssValue('background-color')).toContain(data.dashboard.color_red);
+    }
+  }
+
+   /**
+   * @name clickonDashboardTab
+   * @description It will click on Dashboard Tab
+   * @returns Promise
+   */
+  async clickonDashboardTab() {
+    return element(by.linkText('DASHBOARD')).click();
+  }
+}

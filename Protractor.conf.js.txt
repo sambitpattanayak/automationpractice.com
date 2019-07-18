@@ -1,0 +1,115 @@
+const { SpecReporter } = require('jasmine-spec-reporter');
+var tokens ='';
+exports.config = {
+  allScriptsTimeout: 11000000, // 3 Hours due to slowness in SauceLabs
+  specs: [
+    './e2e/**/*.e2e-spec.ts',
+  ],
+  // Sauce Labs
+  sauceUser:'everest-dev',
+  sauceKey:'cb4bdd0a-4e94-4de2-b648-d7a172c2b0f1',
+  sauceBuild:'iREC(FINDEV)-AUTOMATION-TEST', 
+  sauceSeleniumUseHttp:true,
+  sauceSeleniumAddress:'ondemand.saucelabs.com:80/wd/hub',
+//-----------------------------------------------CHROME - VDI------------------------
+  // capabilities: {
+  //   'browserName': 'chrome',
+  //   'extended-debugging': true
+  // },
+  // chromeDriver:'./chromedriver_2.41.exe',
+  // directConnect: true,
+//------------------------------------------------Sauce Labs-------------------------
+multiCapabilities: [
+{
+  'browserName': 'chrome',
+  'version': '71.0',
+  'screenResolution': '1920x1080',
+  'name': 'Protractor_Automation_Chrome',
+  'platform': 'Windows 10',
+  'parentTunnel': 'cscalm',
+  'tunnelIdentifier': 'testmanagersauce',
+  'extended-debugging': true
+},
+{
+  'browserName': 'internet explorer',
+  'version': '11',
+  'screenResolution': '1920x1080',
+  'name': 'Protractor_Automation_IE',
+  'platform': 'Windows 10',
+  'parentTunnel': 'cscalm', 
+  'tunnelIdentifier': 'testmanagersauce',
+  'extended-debugging': true
+},
+// {
+//   'browserName': 'MicrosoftEdge',
+//   'screenResolution': '1920x1080',
+//   'name': 'Protractor_Automation_Edge',
+//   'platform': 'Windows 10',
+//   'parentTunnel': 'cscalm', 
+//   'tunnelIdentifier': 'testmanagersauce',
+//   'extended-debugging': true
+// }
+],
+// maxSessions: 1, 
+//-----------------------------------------------------------------------------------
+  baseUrl: 'http://localhost:4200/',
+  framework: 'jasmine',
+  suites: {
+    login: './e2e/app*spec.ts',
+    change_customer: ['./e2e/change-customer/**/*spec.ts'],
+    dashboard: ['./e2e/dashboard/**/*spec.ts'],
+    entity_search_module: ['./e2e/entitySearch/**/*spec.ts'],
+    external_user: ['./e2e/external-user/**/*spec.ts'],
+    invoices_module: ['./e2e/invoices/**/*spec.ts'],
+    make_payments: ['./e2e/make-payment/**/*spec.ts'],
+    matter_number_update: ['./e2e/matter-number-update/**/*spec.ts'],
+    payment_search_module: ['./e2e/payment/**/*spec.ts'],
+    statements_search: ['./e2e/statements-search/**/*spec.ts'],
+    // Payments_Search
+    payments_advanced_search: ['./e2e/payment/**/paymentAdvncSearch.e2e-spec.ts'],
+    payments_dontKnow_validation: ['./e2e/payment/**/paymentDontknwIDvalidation.e2e-spec.ts'],
+    payments_download_summary: ['./e2e/payment/**/paymentDownloadSum.e2e-spec.ts'],
+    payments_search: ['./e2e/payment/**/paymentSearch.e2e-spec.ts'],
+    payments_export_email: ['./e2e/payment/**/paymentSearchExportEmail.e2e-spec.ts'],
+    payments_search_sorting: ['./e2e/payment/**/paymentSearchSorting.e2e-spec.ts'],
+    // Invoices_Search
+    invoices_advanced_search: ['./e2e/invoices/**/invoicesAdvncSearch.e2e-spec.ts'],
+    invoices_dontKnow_validation: ['./e2e/invoices/**/invoicesDontknwIDValidation.e2e-spec.ts'],
+    invoices_download_summary: ['./e2e/invoices/**/invoicesDownloadSum.e2e-spec.ts'],
+    invoices_search: ['./e2e/invoices/**/invoices.e2e-spec.ts'],
+    invoices_search_filter: ['./e2e/invoices/**/invoicesSearchFilter.e2e-spec.ts'],
+    invoices_search_sorting: ['./e2e/invoices/**/invoicesSearchSorting.e2e-spec.ts'],
+    invoices_action: ['./e2e/invoices/**/invoicesAction.e2e-spec.ts'],
+    invoices_action_2: ['./e2e/invoices/**/invoicesAction_2.e2e-spec.ts'],
+    invoices_action_email: ['./e2e/invoices/**/invoicesActionEmail.e2e-spec.ts'],
+    invoices_action_image: ['./e2e/invoices/**/invoicesActionImage.e2e-spec.ts'],
+    invoices_summarized: ['./e2e/invoices/**/invoicesSummarized.e2e-spec.ts'],
+    // Entity_Search
+    entity_search_matter_update: ['./e2e/entitySearch/**/EntityMatterUpdate.e2e-spec.ts'],
+    entity_search_sorting: ['./e2e/entitySearch/**/EntitySearchSorting.e2e-spec.ts'],
+    entity_search_dontKnow_entity: ['./e2e/entitySearch/**/EntitySearchDontknowEntity#.e2e-spec.ts'],
+    entity_search_filter: ['./e2e/entitySearch/**/EntitySearchFilter.e2e-spec.ts'],
+    entity_search_action_export: ['./e2e/entitySearch/**/EntitySearchExportResults.e2e-spec.ts'],
+  },
+  jasmineNodeOpts: {
+    showColors: true,
+    defaultTimeoutInterval: 11000000, // 3 Hours due to slowness in SauceLabs
+    print: function() {}
+  },
+  SELENIUM_PROMISE_MANAGER: false,
+  params:{
+    tokens : '',
+    environment : {
+      env : '',
+   },
+    user_type : {
+      isExternal : false // default value
+    }
+  },
+  onPrepare() {
+    require('ts-node').register({
+      project: 'e2e/tsconfig.e2e.json'
+    });
+    jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+  }
+};

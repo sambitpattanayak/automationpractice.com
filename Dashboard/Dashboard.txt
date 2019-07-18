@@ -1,0 +1,232 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+import { Dashboard } from './dashboard.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Dashboard Page:with customer', () => {
+    let app: AppPage;
+    let dash: Dashboard;
+    beforeAll(async () => {
+        app = new AppPage();
+        dash = new Dashboard();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+       await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(2000);
+        });
+
+
+    it('should be the dashboard page url', async () => {
+        expect(await browser.getCurrentUrl()).toContain('#/home/dashboard');
+    });
+
+    it('should not have dashboard component 0 size', async () => {
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+    });
+
+    it('should verify the dashboard header', async () => {
+        await browser.actions().mouseMove($('.send-right')).perform();
+        expect(await $('.send-right').getText()).toContain(data.dashboard.static_text1);
+        await browser.sleep(2000);
+        // expect(await $('.send-right').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await $('[data-target] .ab-link-text').click();
+        await browser.sleep(2000);
+        expect(await $('.ab-dropdownbtn').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        expect(await $('.ab-dropdown-links').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        expect(await $('.ab-dropdown-links').getText()).toContain(data.dashboard.static_text28);
+        expect(await $('.ab-dropdown-links').getText()).toContain(data.dashboard.static_text4);
+        expect(await $('.ab-dropdown-links').getText()).toContain(data.dashboard.static_text5);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.dashboard.static_text6);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.dashboard.static_text7);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.dashboard.static_text8);
+        expect(await $('.display-inline-block div').getText()).toContain(data.dashboard.static_text9);
+        expect(await $('.display-inline-block div').getText()).toContain(data.dashboard.static_text10);
+    });
+
+    it('should verify all the static texts', async () => {
+        expect(await $('h3.center').getText()).toContain(data.dashboard.static_text11);
+        expect(await $('h3.center').getText()).toContain(data.dashboard.static_text12);
+        expect(await $('.dashboard-body').$('h3').getText()).toContain(data.dashboard.static_text13);
+        expect(await $('.dashboard-body').$('h3').getText()).toContain(data.dashboard.static_text14);
+        expect(await element(by.linkText('Click here to find and pay specific invoices')).getTagName()).toBe('a');
+        expect(await $('.chartdetail h3').getText()).toBe(data.dashboard.static_text15);
+        expect(await element(by.xpath('//span[contains(text(),"Last 30 days")]')).getText()).toContain(data.dashboard.static_text16);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[contains(text(),"All unapplied payments")]')).getText()).toContain(data.dashboard.static_text17);
+    });
+
+    it('should verify the againg buckets texts', async () => {
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="text-lg csc-secondary-color-dark-gray no-padding"]')).getText()).toContain(data.dashboard.static_text18);
+        expect(await element(by.xpath('//span[contains(text(),"Current")]')).getText()).toContain(data.dashboard.static_text19);
+        expect(await element(by.xpath('//span[contains(text(),"1-30")]')).getText()).toContain(data.dashboard.static_text20);
+        expect(await element(by.xpath('//span[contains(text(),"31-60")]')).getText()).toContain(data.dashboard.static_text21);
+        expect(await element(by.xpath('//span[contains(text(),"61-90")]')).getText()).toContain(data.dashboard.static_text22);
+        expect(await element(by.xpath('//span[contains(text(),"90+")]')).getText()).toContain(data.dashboard.static_text23);
+        expect(await element(by.xpath('//strong[@class="text-lg"]')).getText()).toContain(data.dashboard.static_text24);
+    });
+
+    it('should check colour of againg buckets', async () => {
+        dash.checkAgeingBucketsColors();
+    });
+
+    it('should check colour of highlighted menu option and Payment Button', async () => {
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await dash.clickSelectAllCheckbox();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await dash.clickSelectAllCheckbox();
+    });
+
+    it('should have NEW SEARCH link', async () => {
+        expect(element(by.linkText('New Search'))).toBeTruthy();
+    });
+
+    it('should verify the number of buttons', async () => {
+        expect(await $$('button').count()).toEqual(4);
+    });
+
+    it('should verify button text', async () => {
+        expect(await element(by.buttonText('DOWNLOAD TO EXCEL')).getAttribute('id')).toBe('donwload-excel-btn');
+        expect(await element(by.buttonText('VIEW SELECTED INVOICES')).getAttribute('id')).toBe('view-selected-invoice-btn');
+        expect(await element(by.buttonText('PAY SELECTED')).getAttribute('id')).toBe('pay-selected-btn');
+        expect(await element(by.buttonText('VIEW SELECTED PAYMENTS')).getTagName()).toBe('button');
+    });
+
+    it('should match the dashboard footer', async () => {
+        // Copyright ©2019 Corporation Service Company. All rights Reserved.
+        const year = (new Date()).getFullYear().toString();
+        expect(await $('#copyright').getText()).toContain(data.dashboard.static_text25);
+        expect(await $('#copyright').getText()).toContain(year);
+        expect(await $('#copyright').getText()).toContain(data.dashboard.static_text26);
+        expect(await $('#copyright').getText()).toContain(data.dashboard.static_text27);
+    });
+
+    it('should click on the PAY SELECTED button', async () => {
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        await $('.cross-button').click();
+        expect(await $('[ng-reflect-title] [ng-reflect-ng-style]').isDisplayed()).toBeTruthy();
+        await browser.sleep(2000);
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+
+    it('should click on the VIEW SELECTED INVOICES button', async () => {
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeTruthy();
+        await dash.clickViewSelectedInvoicesButton();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        expect(await browser.getCurrentUrl()).toContain('#/home/invoice');
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname1);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await element(by.linkText('DASHBOARD')).click();
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+
+    it('should click on the DOWNLOAD TO EXCEL button', async () => {
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('DOWNLOAD TO EXCEL')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('DOWNLOAD TO EXCEL')).isEnabled()).toBeTruthy();
+        await element(by.buttonText('DOWNLOAD TO EXCEL')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+    });
+
+    it('should click on the link "Click here to find and pay specific invoices"', async () => {
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        await element(by.linkText('Click here to find and pay specific invoices')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        await browser.executeScript('window.scrollTo(0,0)');
+        expect(await browser.getCurrentUrl()).toContain('#/home/invoice');
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname1);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await element(by.linkText('DASHBOARD')).click();
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+
+    it('should select "Last 30 days" and click on "VIEW SELECTED PAYMENTS" button', async () => {
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        await element(by.xpath('//span[contains(text(),"Last 30 days")]')).click();
+        await element(by.buttonText('VIEW SELECTED PAYMENTS')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        await browser.executeScript('window.scrollTo(0,0)');
+        expect(await browser.getCurrentUrl()).toContain('#/home/payment');
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname2);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await element(by.linkText('DASHBOARD')).click();
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+
+    it('should select "All unapplied payments" and click on "VIEW SELECTED PAYMENTS" button', async () => {
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        await element(by.xpath('//span[contains(text(),"All unapplied payments")]')).click();
+        await element(by.buttonText('VIEW SELECTED PAYMENTS')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        await browser.executeScript('window.scrollTo(0,0)');
+        expect(await browser.getCurrentUrl()).toContain('#/home/payment');
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname2);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await element(by.linkText('DASHBOARD')).click();
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+
+    it('should select both "Last 30 days" and "All unapplied payments" and click on "VIEW SELECTED PAYMENTS" button', async () => {
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        await element(by.xpath('//span[contains(text(),"Last 30 days")]')).click();
+        await element(by.xpath('//span[contains(text(),"All unapplied payments")]')).click();
+        await element(by.buttonText('VIEW SELECTED PAYMENTS')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        await browser.executeScript('window.scrollTo(0,0)');
+        expect(await browser.getCurrentUrl()).toContain('#/home/payment');
+        expect(await $('.tabselected').getText()).toBe(data.dashboard.tabname2);
+        expect(await $('.tabselected').getCssValue('background-color')).toContain(data.dashboard.color_cyan);
+        await element(by.linkText('DASHBOARD')).click();
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toBeGreaterThan(0);
+        expect(size['width']).toBeGreaterThan(0);
+        expect(await $('#selectAll').getAttribute('ng-reflect-model')).toBe('false');
+    });
+  });

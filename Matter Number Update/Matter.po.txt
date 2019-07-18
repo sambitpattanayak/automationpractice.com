@@ -1,0 +1,82 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+const data = require('../app.e2e-test_data.json');
+let app: AppPage;
+app = new AppPage();
+let inv: Invoices;
+inv = new Invoices();
+export class MatterNumberUpdate {
+
+      /**
+       * @returns data read from excel.
+       */
+      readExcelMatterNumberUpdate(sheet_index, cellnumber) {
+         const XLSX = require('xlsx');
+         const testEnv = browser.params.environment.env;
+         let workbook = null;
+         if (testEnv === 'DEV') {
+         workbook = XLSX.readFile('e2e/matter-number-update/testdataMatterNumberUpdate_DEV.xlsx');
+         }else if (testEnv === 'QA') {
+         workbook = XLSX.readFile('e2e/matter-number-update/testdataMatterNumberUpdate_QA.xlsx');
+         }
+         const sheetindex = workbook.SheetNames[sheet_index];
+         const worksheet = workbook.Sheets[sheetindex];
+         const readValue = worksheet[cellnumber];
+         const desired_value = (readValue ? readValue.v : undefined);
+         return desired_value;
+      }
+
+   /**
+   * @name defaultAllInvoiceSearch
+   * @description It will select All invoices and click on search on Invoice Tab
+   * @returns Promise
+   */
+  async defaultAllInvoiceSearch() {
+        await inv.clickonInvoiceTab();
+        expect(browser.getCurrentUrl()).toContain('#/home/invoice');
+        expect($('.tabselected').getText()).toBe(data.dashboard.tabname1);
+        await browser.sleep(1000);
+        expect($('.tabselected').getCssValue('background-color')).toBe(data.dashboard.color_cyan);
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+  }
+
+     /**
+   * @name invoiceSearch
+   * @description It will input invoice number and click on search on Invoice Tab
+   * @returns Promise
+   */
+  async invoiceSearch() {
+      await inv.clickSearchButton();
+      await app.waitForMainLoader();
+      await browser.executeScript('window.scrollTo(0,2000)');
+      await this.FilterInvoice(this.readExcelMatterNumberUpdate(0, 'B9'));
+      await browser.sleep(5000);
+}
+
+ /**
+   * @name changeClient
+   * @description It will change Client
+   * @returns Action
+   */
+  async changeClient() {
+      // await $('#customer-id-dialog-input').sendKeys(data.customerdetails.ID_internal_Multiple_Service_Area);
+      await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B5'));
+      await app.buttonGoChangeCustomerPopUp().click();
+      // await $('.c-i-cancel_1').click();
+      await app.waitForMainLoader();
+      }
+
+       /**
+   * @name FilterInvoice
+   * @description It will Filter Invoice in Search grid
+    */
+   async FilterInvoice(Invoice: string) {
+      element(by.xpath('//tr[@class="k-filter-row"]/td[4]/input')).sendKeys(Invoice);
+   }
+}

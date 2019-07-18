@@ -1,0 +1,181 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from './paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Grid Sorting - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    let pay: Payment;
+    const sortasc = $('span.k-icon.k-i-sort-asc-sm');
+    const sortdesc = $('span.k-icon.k-i-sort-desc-sm');
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        pay = new Payment ();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        await browser.sleep(1000);
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+      await app.appLogout();
+  });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    // 1038_iRec_PaymentSearch_SearchResults_SortUsingReceipt#_043
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Receipt#' , async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).
+        toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        await inv.SortReceipt();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await inv.SortReceipt();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+      });
+    // 1038_iRec_PaymentSearch_SearchResults_SortUsingInvoice#_044
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Invoice#' , async () => {
+        await inv.SortInvoice();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await inv.SortInvoice();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+      });
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Payment Amount' , async () => {
+        await paysrc.SortPaymentAmt();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await paysrc.SortPaymentAmt();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+      });
+    // 1038_iRec_PaymentSearch_SearchResults_SortUsingUnappliedAmount_045
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Unapplied Amount' , async () => {
+        await paysrc.SortUnappliedAmt();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await paysrc.SortUnappliedAmt();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+      });
+    // 1038_iRec_PaymentSearch_SearchResults_SortUsingPaymentDate_046
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Payment Date' , async () => {
+        await paysrc.SortPaymentDt();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await paysrc.SortPaymentDt();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+      });
+    // 1038_iRec_PaymentSearch_SearchResults_SortUsingPaymentType_047
+    it('Should verify User is able to Sort Payment Results displayed on the page based on header field Payment Type' , async () => {
+        await paysrc.SortPaymentType();
+        await app.waitForEcVisible(sortasc);
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+        await paysrc.SortPaymentType();
+        await app.waitForEcVisible(sortdesc);
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,0)');
+      });
+    // 1038_iRec_PaymentSearch_SearchResults_FilterUsingReceipt#_048
+    it('Should Verify that user is able to filter Payment Search Results displayed on the page based on header field "Receipt#"' ,
+     async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await paysrc.FilterReceipt(paysrc.readExcelpaysrc(0, 'B7'));
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,200)');
+        const rcpt = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[2]/div/span[2]')).getText());
+        console.log('Receipt Selected :: ', rcpt );
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[2]/div/span[2]')).getAttribute('title')).toContain(rcpt);
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_FilterUsingInvoice#_049
+    it('Should Verify that user is able to filter Payment Search Results displayed on the page based on header field "INVOICE#"' ,
+    async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await paysrc.FilterInvoice(paysrc.readExcelpaysrc(0, 'B8'));
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,200)');
+        const inv1 = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[3]/span')).getText());
+        console.log('Receipt Selected :: ', inv1 );
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[3]/span')).getAttribute('title')).toContain(paysrc.readExcelpaysrc(0, 'B8'));
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_FilterUsingPaymentAmount#_050
+    it('Should Verify that user is able to filter Payment Search Results displayed on the page based on header field "Payment Amount"' ,
+    async () => {
+         await inv.clickSearchButton();
+         await app.waitForMainLoader();
+        const PymntAmnt = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[4]')).getText());
+        console.log('Receipt Selected :: ', PymntAmnt );
+        await paysrc.FilterPymntAmnt(paysrc.readExcelpaysrc(0, 'B9'));
+        await browser.executeScript('window.scrollTo(0,200)');
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[4]/span')).
+        getAttribute('title')).toContain(data.payments.pymnt_amt);
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_FilterUsingUnappliedAmount#_051
+    it('Should Verify that user is able to filter Payment Search Results displayed on the page based on header field "Unapplied Amount"' ,
+    async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const UnappliedAmnt = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[5]')).getText());
+        console.log('Receipt Selected :: ', UnappliedAmnt );
+        await paysrc.FilterUnappliedAmt(paysrc.readExcelpaysrc(0, 'B9'));
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,200)');
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[5]/span')).getAttribute('title')).
+        toContain(data.payments.pymnt_amt);
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_FilterUsingPaymentType_052
+    it('Should Verify that user is able to filter Payment Search Results displayed on the page based on header field "Payment type"' ,
+    async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const PymtType = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]')).getText());
+        console.log('Receipt Selected :: ', PymtType );
+        await paysrc.FilterPymntType(PymtType);
+        await browser.sleep(2000);
+        await browser.executeScript('window.scrollTo(0,200)');
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getAttribute('title')).toContain(PymtType);
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+});

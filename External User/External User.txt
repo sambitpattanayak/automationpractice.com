@@ -1,0 +1,105 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+import { Dashboard } from '../dashboard/dashboard.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+import { Statements } from '../statements-search/statements.po';
+const data = require('../app.e2e-test_data.json');
+const test_env = browser.params.environment.env;
+const user_type = browser.params.user_type.isExternal;
+
+describe('Testcases for External User', () => {
+    let app: AppPage;
+    let dash: Dashboard;
+    let state: Statements;
+    let pay: Payment;
+    let paysrc: PaymentSearch;
+    let inv: Invoices;
+    beforeAll(async () => {
+        app = new AppPage();
+        dash = new Dashboard();
+        inv = new Invoices();
+        state = new Statements();
+        pay = new Payment ();
+        paysrc = new PaymentSearch();
+        await app.appLogin(test_env, user_type);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+    it('Verify that Externel users will not able to Set context', async() => {
+        await browser.sleep(3000);
+        await expect(element(by.id('change-customer-link1')).isPresent()).toBeFalsy();
+        await expect(element(by.id('change-customer-link2')).isPresent()).toBeFalsy();
+    });
+    it('Verify that the NEW SEARCH options are not available for external users', async () => {
+        await expect(element(by.linkText('NEW SEARCH')).isPresent()).toBeFalsy();
+        await inv.clickonInvoiceTab();
+        await browser.sleep(2000);
+        await expect(element(by.linkText('NEW SEARCH')).isPresent()).toBeFalsy();
+        await pay.clickonPaymentTab();
+        await browser.sleep(2000);
+        await expect(element(by.linkText('NEW SEARCH')).isPresent()).toBeFalsy();
+        await state.clickonStatementsTab();
+        await browser.sleep(2000);
+        await expect(element(by.linkText('NEW SEARCH')).isPresent()).toBeFalsy();
+    });
+    it('Verifies External User cannot access the Make Payment Flow', async () => {
+        await element(by.linkText('DASHBOARD')).click();
+        await browser.sleep(3000);
+        await expect(element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await expect(element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        await expect(element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await expect(element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeTruthy();
+        await browser.sleep(3000);
+        await dash.clickViewSelectedInvoicesButton();
+        await app.waitForMainLoader();
+        await expect($('.k-primary').isEnabled()).toBeFalsy();
+    });
+    it('Ability to update matter number using External User login', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await inv.SearchInvoice(inv.readExcelInv(0, 'B33'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        // Matter number Update
+        const checkboxes = element.all(by.className('k-checkbox-label'));
+        const checkboxes_count = await checkboxes.count();
+        await browser.executeScript('document.getElementsByClassName("k-icon k-i-edit col s2 no-padding right").item(0).click()');
+        await app.waitForMainLoader();
+        await expect($('.k-dialog-title').getText()).toBe(data.EntitySearch.UpdateInvoice);
+        await $('.cscForm .ng-untouched').sendKeys(inv.readExcelInv(0, 'B4'));
+        const checkbox = element.all(by.className('k-checkbox-label')).get(checkboxes_count);
+        await browser.executeScript('arguments[0].click();', checkbox);
+        await $('.k-primary.header-button').click();
+        await $('.k-tertiary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect($$('div.toaster-body.csc-success').isDisplayed()).toBeTruthy();
+        const closePopup = $('[aria-label="Close"]');
+        await browser.executeScript('arguments[0].click();', closePopup);
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,0)');
+
+    });
+    it('Should Search Payments using "Invoice #"', async () => {
+        await browser.sleep(2000);
+        await pay.clickonPaymentTab();
+        await browser.sleep(2000);
+        await paysrc.SearchInvoice(paysrc.readExcelpaysrc(0, 'B27'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        const invoice = await(element(by.xpath('//kendo-grid-list[@class="k-grid-container"]//td[3]/span/a')).getText());
+        console.log('Searched Invoice: ', invoice);
+        expect(await invoice).toBe(paysrc.readExcelpaysrc(0, 'B27'));
+    });
+});

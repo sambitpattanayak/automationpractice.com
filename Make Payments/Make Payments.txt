@@ -1,0 +1,1041 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+import { Dashboard } from '../dashboard/dashboard.po';
+import { Payment } from './make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('Testcases for iReceivable Make Payments Window : ', () => {
+    let app: AppPage;
+    let dash: Dashboard;
+    let pay: Payment;
+    beforeAll(async () => {
+        app = new AppPage();
+        dash = new Dashboard();
+        pay = new Payment();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B14'));
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        await browser.refresh();
+        await browser.sleep(2000);
+        // await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        // await app.waitForMainLoader();
+        });
+
+    it('should make a payment with NEW USD Credit Card', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        const driver = browser.driver;
+        const loc = by.tagName('iframe');
+        const el = driver.findElement(loc);
+        await browser.switchTo().frame(el);
+        await element(by.xpath('//input[@id="ccnumfield"]')).sendKeys(pay.readExcelMakePayments(0, 'B2'));
+        await browser.switchTo().defaultContent();
+        await element(by.xpath('//div[@class="col s5 no-padding"]//input[@name="Name"]')).sendKeys(pay.readExcelMakePayments(0, 'B3'));
+        await element(by.xpath('//input[@name="secCode"]')).sendKeys(pay.readExcelMakePayments(0, 'B4'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[1]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[5]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[2]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[6]')).click();
+        await element(by.xpath('//input[@name="address1"]')).sendKeys(pay.readExcelMakePayments(0, 'B5'));
+        await $('.smForm:nth-child(4) [name="Name"]').sendKeys(pay.readExcelMakePayments(0, 'B6'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[3]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('//li[@class="k-item"][232]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[4]')).click();
+        await browser.sleep(2000);
+        await element(by.xpath('//li[@class="k-item"][1]')).click();
+        await element(by.xpath('//input[@placeholder="City"]')).sendKeys(pay.readExcelMakePayments(0, 'B7'));
+        await element(by.xpath('//input[@placeholder="Zip Code"]')).sendKeys(pay.readExcelMakePayments(0, 'B8'));
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        await browser.sleep(1000);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeTruthy();
+        await $('.k-lg-btn.k-primary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        // Payment receipt
+        await pay.cancelPaymentReceiptCreationPopup();
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_1);
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_2);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt#")]')).getText()).toContain(data.MakeaPayment.Text31);
+        expect(await element(by.xpath('//span[contains(text(),"Date")]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//div[@class="pt20 pr20 pb20 pl0"]//p')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_Message2);
+        expect(await element(by.xpath('//strong[@class="col s4"]')).getText()).toContain(data.MakeaPayment.Text33);
+        expect(await element(by.xpath('//strong[@class="col s3"]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//strong[@class="col s3 right-align"]')).getText()).toContain(data.MakeaPayment.Text34);
+        expect(await element(by.xpath('//strong[@class="col s2 right-align"]')).getText()).toContain(data.MakeaPayment.Text35);
+        expect(await element(by.xpath('//span[@class="paySumLeftTop"]')).getText()).toContain(data.MakeaPayment.Text36);
+        expect(await element(by.xpath('//span[@class="paySumRightTop"]')).getText()).toContain(data.MakeaPayment.Text37);
+        expect(await element(by.xpath('//button[contains(text(),"Download/Print")]')).getText()).toContain(data.MakeaPayment.Text38);
+        expect(await element(by.xpath('//button[contains(text(),"Email")]')).getText()).toContain(data.MakeaPayment.Text39);
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+    });
+
+    it('should make a payment with EXISTING USD Credit Card', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('//a[contains(text(),"Select from Profile")]')).click();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).
+        toContain(data.MakeaPayment.Select_Existing);
+        expect(await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).isEnabled()).toBeFalsy();
+        await element(by.xpath('//div[@class="tokens-container"]//div[1]//label[1]')).click();
+        expect(await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).isEnabled()).toBeTruthy();
+        await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).click();
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).isEnabled()).toBeTruthy();
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+        await app.waitForMainLoader();
+        // Payment receipt
+        await pay.cancelPaymentReceiptCreationPopup();
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_1);
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_2);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt#")]')).getText()).toContain(data.MakeaPayment.Text31);
+        expect(await element(by.xpath('//span[contains(text(),"Date")]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//div[@class="pt20 pr20 pb20 pl0"]//p')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_Message2);
+        expect(await element(by.xpath('//strong[@class="col s4"]')).getText()).toContain(data.MakeaPayment.Text33);
+        expect(await element(by.xpath('//strong[@class="col s3"]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//strong[@class="col s3 right-align"]')).getText()).toContain(data.MakeaPayment.Text34);
+        expect(await element(by.xpath('//strong[@class="col s2 right-align"]')).getText()).toContain(data.MakeaPayment.Text35);
+        expect(await element(by.xpath('//span[@class="paySumLeftTop"]')).getText()).toContain(data.MakeaPayment.Text36);
+        expect(await element(by.xpath('//span[@class="paySumRightTop"]')).getText()).toContain(data.MakeaPayment.Text37);
+        expect(await element(by.xpath('//button[contains(text(),"Download/Print")]')).getText()).toContain(data.MakeaPayment.Text38);
+        expect(await element(by.xpath('//button[contains(text(),"Email")]')).getText()).toContain(data.MakeaPayment.Text39);
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+
+
+    });
+
+    it('should make a payment with NEW USD ACH', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border "]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[2]')).click(); // Selects ACH Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).
+        toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('.div2-stage2-sub-heading').getText()).toContain(data.MakeaPayment.Text8_1);
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).
+        toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting ACH
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_1);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text40);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text41);
+        expect(await element(by.xpath('//fieldset//div[4]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text42);
+        expect(await element(by.xpath('//fieldset//div[5]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text43);
+        expect(await element(by.xpath('(//label[contains(text(),"Checking")])[2]')).getText()).toContain(data.MakeaPayment.Text44);
+        expect(await element(by.xpath('//label[contains(text(),"Savings")]')).getText()).toContain(data.MakeaPayment.Text45);
+        expect(await element(by.xpath('//label[contains(text(),"Commercial Checking")]')).getText()).toContain(data.MakeaPayment.Text46);
+        expect(await element(by.xpath('//label[contains(text(),"Reference/Memo Line:")]')).getText()).toContain(data.MakeaPayment.Text47);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        await element(by.xpath('//input[@name="cardNumber"]')).sendKeys(pay.readExcelMakePayments(0, 'B13'));
+        await element(by.xpath('//input[@name="cardIssuer"]')).sendKeys(pay.readExcelMakePayments(0, 'B14'));
+        await element(by.xpath('//input[@name="bankRouting"]')).sendKeys(pay.readExcelMakePayments(0, 'B15'));
+        await element(by.xpath('(//label[contains(text(),"Checking")])[1]')).click();
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).isEnabled()).toBeTruthy();
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+        await app.waitForMainLoader();
+        // Payment receipt
+        await pay.cancelPaymentReceiptCreationPopup();
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_1_1);
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_2);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt#")]')).getText()).toContain(data.MakeaPayment.Text31);
+        expect(await element(by.xpath('//span[contains(text(),"Date")]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//div[@class="pt20 pr20 pb20 pl0"]//p')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_Message2_ACH);
+        expect(await element(by.xpath('//strong[@class="col s4"]')).getText()).toContain(data.MakeaPayment.Text33);
+        expect(await element(by.xpath('//strong[@class="col s3"]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//strong[@class="col s3 right-align"]')).getText()).toContain(data.MakeaPayment.Text34);
+        expect(await element(by.xpath('//strong[@class="col s2 right-align"]')).getText()).toContain(data.MakeaPayment.Text35);
+        expect(await element(by.xpath('//span[@class="paySumLeftTop"]')).getText()).toContain(data.MakeaPayment.Text36);
+        expect(await element(by.xpath('//span[@class="paySumRightTop"]')).getText()).toContain(data.MakeaPayment.Text37);
+        expect(await element(by.xpath('//button[contains(text(),"Download/Print")]')).getText()).toContain(data.MakeaPayment.Text38);
+        expect(await element(by.xpath('//button[contains(text(),"Email")]')).getText()).toContain(data.MakeaPayment.Text39);
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+
+    });
+
+    it('should make a payment with EXISTING USD ACH', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border "]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[2]')).click(); // Selects ACH Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).
+        toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('.div2-stage2-sub-heading').getText()).toContain(data.MakeaPayment.Text8_1);
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).
+        toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting ACH
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_1);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text40);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text41);
+        expect(await element(by.xpath('//fieldset//div[4]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text42);
+        expect(await element(by.xpath('//fieldset//div[5]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text43);
+        expect(await element(by.xpath('(//label[contains(text(),"Checking")])[2]')).getText()).toContain(data.MakeaPayment.Text44);
+        expect(await element(by.xpath('//label[contains(text(),"Savings")]')).getText()).toContain(data.MakeaPayment.Text45);
+        expect(await element(by.xpath('//label[contains(text(),"Commercial Checking")]')).getText()).toContain(data.MakeaPayment.Text46);
+        expect(await element(by.xpath('//label[contains(text(),"Reference/Memo Line:")]')).getText()).toContain(data.MakeaPayment.Text47);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('//a[contains(text(),"Select from Profile")]')).click();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).
+        toContain(data.MakeaPayment.Select_Existing);
+        expect(await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).isEnabled()).toBeFalsy();
+        await element(by.xpath('//div[@class="tokens-container"]//div[1]//label[1]')).click();
+        expect(await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).isEnabled()).toBeTruthy();
+        await element(by.xpath('//button[@class="k-button k-primary col s3 right"]')).click();
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).isEnabled()).toBeTruthy();
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+        await app.waitForMainLoader();
+        // Payment receipt
+        await pay.cancelPaymentReceiptCreationPopup();
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_1_1);
+        expect(await $('.success-msg-body').getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_2);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt#")]')).getText()).toContain(data.MakeaPayment.Text31);
+        expect(await element(by.xpath('//span[contains(text(),"Date")]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//div[@class="pt20 pr20 pb20 pl0"]//p')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_Message2_ACH);
+        expect(await element(by.xpath('//strong[@class="col s4"]')).getText()).toContain(data.MakeaPayment.Text33);
+        expect(await element(by.xpath('//strong[@class="col s3"]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//strong[@class="col s3 right-align"]')).getText()).toContain(data.MakeaPayment.Text34);
+        expect(await element(by.xpath('//strong[@class="col s2 right-align"]')).getText()).toContain(data.MakeaPayment.Text35);
+        expect(await element(by.xpath('//span[@class="paySumLeftTop"]')).getText()).toContain(data.MakeaPayment.Text36);
+        expect(await element(by.xpath('//span[@class="paySumRightTop"]')).getText()).toContain(data.MakeaPayment.Text37);
+        expect(await element(by.xpath('//button[contains(text(),"Download/Print")]')).getText()).toContain(data.MakeaPayment.Text38);
+        expect(await element(by.xpath('//button[contains(text(),"Email")]')).getText()).toContain(data.MakeaPayment.Text39);
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+
+    });
+
+    it('should make a payment with NEW NON-USD Credit Card', async () => {
+        await browser.sleep(3000);
+        await app.getChangeCustomer().click();
+        await pay.changeClient();
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).toContain(data.MakeaPayment.Payment_Confirmation_EURO);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).
+        toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        const driver = browser.driver;
+        const loc = by.tagName('iframe');
+        const el = driver.findElement(loc);
+        await browser.switchTo().frame(el);
+        await element(by.xpath('//input[@id="ccnumfield"]')).sendKeys(pay.readExcelMakePayments(0, 'C2'));
+        await browser.switchTo().defaultContent();
+        await element(by.xpath('//div[@class="col s5 no-padding"]//input[@name="Name"]')).sendKeys(pay.readExcelMakePayments(0, 'C3'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[1]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[5]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[2]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[6]')).click();
+        await element(by.xpath('//input[@name="address1"]')).sendKeys(pay.readExcelMakePayments(0, 'C5'));
+        await $('.smForm:nth-child(4) [name="Name"]').sendKeys(pay.readExcelMakePayments(0, 'C6'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[3]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('//li[@class="k-item"][232]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[4]')).click();
+        await browser.sleep(2000);
+        await element(by.xpath('//li[@class="k-item"][1]')).click();
+        await element(by.xpath('//input[@placeholder="City"]')).sendKeys(pay.readExcelMakePayments(0, 'C7'));
+        await element(by.xpath('//input[@placeholder="Zip Code"]')).sendKeys(pay.readExcelMakePayments(0, 'C8'));
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        await browser.sleep(1000);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeTruthy();
+        await $('.k-lg-btn.k-primary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        // Payment receipt
+        await pay.cancelPaymentReceiptCreationPopup();
+        expect(await $$('.success-msg-body').get(0).getText()).toContain(data.MakeaPayment.Payment_Confirmation_Message1_2);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt#")]')).getText()).toContain(data.MakeaPayment.Text31);
+        expect(await element(by.xpath('//span[contains(text(),"Date")]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//div[@class="pt20 pr20 pb20 pl0"]//p')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_Message2);
+        expect(await element(by.xpath('//strong[@class="col s4"]')).getText()).toContain(data.MakeaPayment.Text33);
+        expect(await element(by.xpath('//strong[@class="col s3"]')).getText()).toContain(data.MakeaPayment.Text32);
+        expect(await element(by.xpath('//strong[@class="col s3 right-align"]')).getText()).toContain(data.MakeaPayment.Text34);
+        expect(await element(by.xpath('//strong[@class="col s2 right-align"]')).getText()).toContain(data.MakeaPayment.Text35);
+        expect(await element(by.xpath('//span[@class="paySumLeftTop"]')).getText()).toContain(data.MakeaPayment.Text36);
+        expect(await element(by.xpath('//span[@class="paySumRightTop"]')).getText()).toContain(data.MakeaPayment.Text37);
+        expect(await element(by.xpath('//button[contains(text(),"Download/Print")]')).getText()).toContain(data.MakeaPayment.Text38);
+        expect(await element(by.xpath('//button[contains(text(),"Email")]')).getText()).toContain(data.MakeaPayment.Text39);
+        await element(by.xpath('//button[@class="k-button k-lg-btn k-primary mt5 mr5 mb5 ml5 right"]')).click();
+    });
+
+    it('should delete/expire existing Saved Credit Card', async () => {
+        await browser.sleep(3000);
+        await app.getChangeCustomer().click();
+        await pay.changeClienttoDefault();
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).
+        toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).
+        toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('//a[contains(text(),"Select from Profile")]')).click();
+        await app.waitForMainLoader();
+        // Deletes Existing Saved Credit Card
+        await element(by.xpath('//div[@class="tokens-container"]/div[1]/span[1]')).click();
+        expect(await element(by.xpath('//div[text()="Please Confirm!"]')).getText()).toContain('Please Confirm!');
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//p[contains(text(),"You")]')).getText()).toContain('You are about to delete a Saved Credit Card. Are you sure you want to proceed?');
+        expect(await element(by.xpath('//button[contains(text(),"Yes")]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[contains(text(),"No")]')).getText()).toContain('NO');
+        await element(by.xpath('//button[contains(text(),"Yes")]')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(5000);
+        await element(by.xpath('//a[@class="k-button k-bare k-button-icon k-window-action k-dialog-action k-dialog-close"]')).click();
+        await element(by.xpath('//span[contains(@class,"mt10 cross-button right cursor-pointer col s1")]')).click();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).toContain('Please confirm');
+        expect(await element(by.xpath('//p[@class="center abort-text"]')).getText()).
+        toContain('Are you sure you want to abort the current transaction?');
+        expect(await element(by.xpath('//button[@class="k-button"]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[@class="k-button k-primary"]')).getText()).toContain('NO');
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        browser.executeScript('window.scrollTo(0,0)');
+
+    });
+
+    it('should delete/expire existing Saved ACH', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border "]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[2]')).click(); // Selects ACH Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).
+        toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('.div2-stage2-sub-heading').getText()).toContain(data.MakeaPayment.Text8_1);
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).
+        toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting ACH
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation_1);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text40);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text41);
+        expect(await element(by.xpath('//fieldset//div[4]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text42);
+        expect(await element(by.xpath('//fieldset//div[5]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text43);
+        expect(await element(by.xpath('(//label[contains(text(),"Checking")])[2]')).getText()).toContain(data.MakeaPayment.Text44);
+        expect(await element(by.xpath('//label[contains(text(),"Savings")]')).getText()).toContain(data.MakeaPayment.Text45);
+        expect(await element(by.xpath('//label[contains(text(),"Commercial Checking")]')).getText()).toContain(data.MakeaPayment.Text46);
+        expect(await element(by.xpath('//label[contains(text(),"Reference/Memo Line:")]')).getText()).toContain(data.MakeaPayment.Text47);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('//a[contains(text(),"Select from Profile")]')).click();
+        await app.waitForMainLoader();
+        // Delete Existing ACH
+        await element(by.xpath('//div[@class="tokens-container"]/div[1]/span[1]')).click();
+        expect(await element(by.xpath('//div[text()="Please Confirm!"]')).getText()).toContain('Please Confirm!');
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//p[contains(text(),"You")]')).getText()).toContain('You are about to delete a Saved E-Check. Are you sure you want to proceed?');
+        expect(await element(by.xpath('//button[contains(text(),"Yes")]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[contains(text(),"No")]')).getText()).toContain('NO');
+        await element(by.xpath('//button[contains(text(),"Yes")]')).click();
+        await app.waitForMainLoader();
+        await browser.sleep(5000);
+        await element(by.xpath('//a[@class="k-button k-bare k-button-icon k-window-action k-dialog-action k-dialog-close"]')).click();
+        await element(by.xpath('//span[contains(@class,"mt10 cross-button right cursor-pointer col s1")]')).click();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).toContain('Please confirm');
+        expect(await element(by.xpath('//p[@class="center abort-text"]')).getText()).
+        toContain('Are you sure you want to abort the current transaction?');
+        expect(await element(by.xpath('//button[@class="k-button"]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[@class="k-button k-primary"]')).getText()).toContain('NO');
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        browser.executeScript('window.scrollTo(0,0)');
+    });
+
+    it('should REJECT DO NO HONOR CREDIT CARD during AUTH process and restrict further payments', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        const driver = browser.driver;
+        const loc = by.tagName('iframe');
+        const el = driver.findElement(loc);
+        await browser.switchTo().frame(el);
+        await element(by.xpath('//input[@id="ccnumfield"]')).sendKeys(pay.readExcelMakePayments(0, 'D2'));
+        await browser.switchTo().defaultContent();
+        await element(by.xpath('//div[@class="col s5 no-padding"]//input[@name="Name"]')).sendKeys(pay.readExcelMakePayments(0, 'D3'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[1]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[5]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[2]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[6]')).click();
+        await element(by.xpath('//input[@name="address1"]')).sendKeys(pay.readExcelMakePayments(0, 'D5'));
+        await $('.smForm:nth-child(4) [name="Name"]').sendKeys(pay.readExcelMakePayments(0, 'D6'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[3]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('//li[@class="k-item"][232]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[4]')).click();
+        await browser.sleep(2000);
+        await element(by.xpath('//li[@class="k-item"][1]')).click();
+        await element(by.xpath('//input[@placeholder="City"]')).sendKeys(pay.readExcelMakePayments(0, 'D7'));
+        await element(by.xpath('//input[@placeholder="Zip Code"]')).sendKeys(pay.readExcelMakePayments(0, 'D8'));
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        await browser.sleep(1000);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeTruthy();
+        await $('.k-lg-btn.k-primary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(2000);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//div[@class="toaster-body csc-error"]')).getText()).toContain('Sorry your transaction could not be processed as entered');
+        await element(by.xpath('//span[@class="c-i-cancel_1 text-xl cursor-pointer right cross-icon"]')).click();
+        await element(by.xpath('//span[contains(@class,"mt10 cross-button right cursor-pointer col s1")]')).click();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).toContain('Please confirm');
+        expect(await element(by.xpath('//p[@class="center abort-text"]')).getText()).
+        toContain('Are you sure you want to abort the current transaction?');
+        expect(await element(by.xpath('//button[@class="k-button"]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[@class="k-button k-primary"]')).getText()).toContain('NO');
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+    });
+
+    it('should REJECT EXPIRED CREDIT CARD during AUTH process and restrict further payments', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        const driver = browser.driver;
+        const loc = by.tagName('iframe');
+        const el = driver.findElement(loc);
+        await browser.switchTo().frame(el);
+        await element(by.xpath('//input[@id="ccnumfield"]')).sendKeys(pay.readExcelMakePayments(0, 'E2'));
+        await browser.switchTo().defaultContent();
+        await element(by.xpath('//div[@class="col s5 no-padding"]//input[@name="Name"]')).sendKeys(pay.readExcelMakePayments(0, 'E3'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[1]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[5]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[2]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[6]')).click();
+        await element(by.xpath('//input[@name="address1"]')).sendKeys(pay.readExcelMakePayments(0, 'E5'));
+        await $('.smForm:nth-child(4) [name="Name"]').sendKeys(pay.readExcelMakePayments(0, 'E6'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[3]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('//li[@class="k-item"][232]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[4]')).click();
+        await browser.sleep(2000);
+        await element(by.xpath('//li[@class="k-item"][1]')).click();
+        await element(by.xpath('//input[@placeholder="City"]')).sendKeys(pay.readExcelMakePayments(0, 'E7'));
+        await element(by.xpath('//input[@placeholder="Zip Code"]')).sendKeys(pay.readExcelMakePayments(0, 'E8'));
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        await browser.sleep(1000);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeTruthy();
+        await $('.k-lg-btn.k-primary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(2000);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//div[@class="toaster-body csc-error"]')).getText()).toContain('Sorry your transaction could not be processed as entered');
+        await element(by.xpath('//span[@class="c-i-cancel_1 text-xl cursor-pointer right cross-icon"]')).click();
+        await element(by.xpath('//span[contains(@class,"mt10 cross-button right cursor-pointer col s1")]')).click();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).toContain('Please confirm');
+        expect(await element(by.xpath('//p[@class="center abort-text"]')).getText()).
+        toContain('Are you sure you want to abort the current transaction?');
+        expect(await element(by.xpath('//button[@class="k-button"]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[@class="k-button k-primary"]')).getText()).toContain('NO');
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+    });
+
+    it('should REJECT payment from CREDIT CARD having INSUFFICIENT FUNDS during AUTH process', async () => {
+        await browser.sleep(3000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeTruthy();
+        await dash.clickPaySelectedButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        expect(await $('#payment-cont-div').isDisplayed()).toBeTruthy();
+        expect(await $('.center.payment-box').getText()).toContain(data.MakeaPayment.Payment_Method_Confirmation);
+        expect(await element(by.xpath('//span[@class="ml20 radio-btn-border"]/span')).getAttribute('class')).toBe('radio-btn');
+        expect(await element(by.xpath('//span[contains(text(),"Total Due")]')).getText()).toContain(data.MakeaPayment.Text1);
+        expect(await element(by.xpath('//span[contains(text(),"To Pay")]')).getText()).toContain(data.MakeaPayment.Text2);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click(); // Selects Credit Card Radio Button
+        await browser.sleep(2000);
+        expect(await element(by.xpath('//h2[@class="center"]')).getText()).toContain(data.MakeaPayment.Text3);
+        expect(await element(by.xpath('//a[@class="hyperlink"]')).getText()).toContain(data.MakeaPayment.Text4);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] .pl10:nth-of-type(1) > strong:nth-of-type(1)').getText()).toContain(data.MakeaPayment.Text5);
+        // tslint:disable-next-line:max-line-length
+        expect(await $('[ng-reflect-from-payment-tr-page] [ng-reflect-klass] [ng-reflect-klass] div .pl10:nth-of-type(2) strong').getText()).toContain(data.MakeaPayment.Text6);
+        expect(await element(by.xpath('//strong[contains(text(),"You can....")]')).getText()).toContain(data.MakeaPayment.Text7);
+        expect(await $('[for="creditRadio"] span:nth-of-type(2)').getText()).toContain(data.MakeaPayment.Text8);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//kendo-pager-info[@class="k-pager-info k-label"]')).getText()).toContain(data.MakeaPayment.Text9);
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]')).getText()).toContain(data.MakeaPayment.Text10);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[2]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text11);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[3]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text12);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[4]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text13);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="0"]//th[6]//a[1]')).getText()).
+        toContain(data.MakeaPayment.Text14);
+        expect(await element(by.xpath('//button[@class="k-button k-lg-btn mt5 mr5 mb5 ml5"]')).getText()).
+        toContain(data.MakeaPayment.Text15);
+        await pay.deleteAllInvoicesexceptFirst();
+        await element(by.xpath('(//input[@type="text"])[1]')).clear();
+        await element(by.xpath('(//input[@type="text"])[1]')).sendKeys(pay.readExcelMakePayments(0, 'B10'));
+        await element(by.buttonText('Next')).click();
+       // After Selecting Credit Card
+        browser.executeScript('window.scrollTo(0,450)');
+        expect(await $('.k-reset [ng-reflect-klass=" k-item k-state-default"]:nth-of-type(2) .hyperlink').getText()).
+        toContain(data.MakeaPayment.Text16);
+        expect(await element(by.xpath('//div[@class="text-lg pt10 pr10 pb10 pl10 blue-div"]')).getText()).
+        toContain(data.MakeaPayment.Payment_Confirmation);
+        expect(await element(by.xpath('//h3[contains(text(),"Payment Method Details:")]')).getText()).toContain(data.MakeaPayment.Text17);
+        expect(await element(by.xpath('//a[contains(text(),"Select from Profile")]')).getText()).toContain(data.MakeaPayment.Text18);
+        expect(await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).getText()).toContain(data.MakeaPayment.Text19);
+        expect(await element(by.xpath('//fieldset//div[2]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text20);
+        expect(await element(by.xpath('//fieldset//div[3]//div[1]//label[1]')).getText()).toContain(data.MakeaPayment.Text21);
+        expect(await element(by.xpath('//div[3]/div[2]/label')).getText()).toContain(data.MakeaPayment.Text22);
+        expect(await element(by.xpath('//label[contains(text(),"Save to profile")]')).getText()).toContain(data.MakeaPayment.Text23);
+        expect(await element(by.xpath('//h3[contains(text(),"Billing Address Details:")]')).getText()).toContain(data.MakeaPayment.Text24);
+        expect(await element(by.xpath('//span//a[@class="cursor-pointer"][contains(text(),"Add New")]')).getText()).
+        toContain(data.MakeaPayment.Text19);
+        expect(await $('.k-form-field:nth-of-type(2) .s2').getText()).toContain(data.MakeaPayment.Text25);
+        expect(await element(by.xpath('//label[contains(text(),"Street Address 2:")]')).getText()).toContain(data.MakeaPayment.Text26);
+        expect(await $('.k-form-field:nth-of-type(4) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text27);
+        expect(await $('.k-form-field:nth-of-type(4) .s5 .s4').getText()).toContain(data.MakeaPayment.Text28);
+        expect(await $('.k-form-field:nth-of-type(5) .no-padding .s4').getText()).toContain(data.MakeaPayment.Text29);
+        expect(await $('.k-form-field:nth-of-type(5) .s5 .s4').getText()).toContain(data.MakeaPayment.Text30);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeFalsy();
+        await element(by.xpath('(//a[contains(text(),"Add New")])[1]')).click();
+        const driver = browser.driver;
+        const loc = by.tagName('iframe');
+        const el = driver.findElement(loc);
+        await browser.switchTo().frame(el);
+        await element(by.xpath('//input[@id="ccnumfield"]')).sendKeys(pay.readExcelMakePayments(0, 'F2'));
+        await browser.switchTo().defaultContent();
+        await element(by.xpath('//div[@class="col s5 no-padding"]//input[@name="Name"]')).sendKeys(pay.readExcelMakePayments(0, 'F3'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[1]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[5]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[2]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('(//li[@class="k-item"])[6]')).click();
+        await element(by.xpath('//input[@name="address1"]')).sendKeys(pay.readExcelMakePayments(0, 'F5'));
+        await $('.smForm:nth-child(4) [name="Name"]').sendKeys(pay.readExcelMakePayments(0, 'F6'));
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[3]')).click();
+        await browser.sleep(1000);
+        await element(by.xpath('//li[@class="k-item"][232]')).click();
+        await element(by.xpath('(//span[@class="k-i-arrow-s k-icon"])[4]')).click();
+        await browser.sleep(2000);
+        await element(by.xpath('//li[@class="k-item"][1]')).click();
+        await element(by.xpath('//input[@placeholder="City"]')).sendKeys(pay.readExcelMakePayments(0, 'F7'));
+        await element(by.xpath('//input[@placeholder="Zip Code"]')).sendKeys(pay.readExcelMakePayments(0, 'F8'));
+        await element(by.xpath('//label[contains(text(),"Save to profile")]')).click();
+        await browser.sleep(1000);
+        expect(await $('.k-lg-btn.k-primary').isEnabled()).toBeTruthy();
+        await $('.k-lg-btn.k-primary').click();
+        await app.waitForMainLoader();
+        await browser.sleep(2000);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//div[@class="toaster-body csc-error"]')).getText()).toContain('Sorry your transaction could not be processed as entered');
+        await element(by.xpath('//span[@class="c-i-cancel_1 text-xl cursor-pointer right cross-icon"]')).click();
+        await element(by.xpath('//span[contains(@class,"mt10 cross-button right cursor-pointer col s1")]')).click();
+        expect(await element(by.xpath('//div[@class="k-window-title k-dialog-title"]')).getText()).toContain('Please confirm');
+        expect(await element(by.xpath('//p[@class="center abort-text"]')).getText()).
+        toContain('Are you sure you want to abort the current transaction?');
+        expect(await element(by.xpath('//button[@class="k-button"]')).getText()).toContain('YES');
+        expect(await element(by.xpath('//button[@class="k-button k-primary"]')).getText()).toContain('NO');
+        await element(by.xpath('//button[@class="k-button"]')).click();
+        await browser.sleep(2000);
+        expect(await element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+    });
+
+    it('Verifies when Customer Account is OFAC status=blocked; Internal User cannot access the Make Payment Flow', async () => {
+        await browser.sleep(2000);
+        await app.getChangeCustomer().click();
+        await pay.changeToBlockedUser();
+        await browser.sleep(2000);
+        expect(element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await expect(element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeFalsy();
+        await dash.clickSelectAllCheckbox();
+        await expect(element(by.buttonText('PAY SELECTED')).isEnabled()).toBeFalsy();
+        await expect(element(by.buttonText('VIEW SELECTED INVOICES')).isEnabled()).toBeTruthy();
+        await browser.sleep(3000);
+        await dash.clickViewSelectedInvoicesButton();
+        await app.waitForMainLoader();
+        await expect($('.k-primary').isEnabled()).toBeFalsy();
+    });
+
+});

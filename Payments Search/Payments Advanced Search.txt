@@ -1,0 +1,230 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from './paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Advanced Search - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    let pay: Payment;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        pay = new Payment ();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentType_CreditCard_022
+    it('Should Search Payments by selecting Payment Type as "Credit Card" using Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeCC();
+        await browser.sleep(1000);
+        const drpdwn = await($$('span.k-input').get(1).getText());
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Dropdown Selected :: ', drpdwn);
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain(drpdwn);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentType_ACH_023
+    it('Should Search Payments by selecting Payment Type as "ACH" using Advance Search options', async () => {
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeACH();
+        await browser.sleep(1000);
+        const drpdwn = await($$('span.k-input').get(1).getText());
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Dropdown Selected :: ', drpdwn);
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain(drpdwn);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentType_Check_024
+    it('Should Search Payments by selecting Payment Type as "Check" using Advance Search options', async () => {
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeCheck();
+        await browser.sleep(1000);
+        const drpdwn = await($$('span.k-input').get(1).getText());
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Dropdown Selected :: ', drpdwn);
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain(drpdwn);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentType_Wire_025
+    it('Should Search Payments by selecting Payment Type as "Wire" using Advance Search options', async () => {
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeWire();
+        await browser.sleep(1000);
+        const drpdwn = await($$('span.k-input').get(1).getText());
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Dropdown Selected :: ', drpdwn);
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain(drpdwn);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingNameOfCreditCard_026
+    it('Should Search Payments using "Name on Credit Card" from Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.NameOnCard(paysrc.readExcelpaysrc(0, 'B2'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain('CC');
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingCreditCard_028
+    it('Should Search Payments using "Last 4 Digit of Credit Card#" from Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.CCLast4Digit(paysrc.readExcelpaysrc(0, 'B3'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain('CC-', paysrc.readExcelpaysrc(0, 'B3'));
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingBankAccount_029
+    it('Should Search Payments using "Last 4 Digit of Bank Account#" from Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.CCLast4Digit(paysrc.readExcelpaysrc(0, 'B4'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain('ACH-', paysrc.readExcelpaysrc(0, 'B4'));
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingNameOfBankAccount_027
+    it('Should Search Payments using "Name of Bank Account" from Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.clickonPaymentTypeACH();
+        await browser.sleep(1000);
+        await paysrc.NameOnCard(paysrc.readExcelpaysrc(0, 'B5'));
+        await inv.clickSearchButton();
+        await browser.sleep(1000);
+        await app.waitForMainLoader();
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Card Selected :: ', Card);
+        expect(await Card).toContain('ACH');
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentAmount_030
+    it('Should Search Payments using "Payment Amount" from Advance Search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await paysrc.clickonPaymentTypeDropdown();
+        await browser.sleep(1000);
+        await paysrc.PaymentAmt(paysrc.readExcelpaysrc(0, 'B6'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const Amt = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[4]/span')).getText();
+        console.log('Amount Selected :: ', Amt);
+        expect(await Amt).toContain(paysrc.readExcelpaysrc(0, 'B6'));
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_Search_MultipleSearchOptions_031
+    it('Should Search Payments using mutiple search/advance search options', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await paysrc.SearchReceipt(paysrc.readExcelpaysrc(0, 'B7'));
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await paysrc.clickOnAdvncSrc();
+        await browser.sleep(1000);
+        await paysrc.CCLast4Digit(paysrc.readExcelpaysrc(0, 'B3'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.className('left col s7 no-padding truncate')).getAttribute('title')).toContain(paysrc.readExcelpaysrc(0, 'B3'));
+        const Card = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[7]/span')).getText();
+        console.log('Credit card Selected :: ', Card);
+        expect(await Card).toContain('CC-', paysrc.readExcelpaysrc(0, 'B6'));
+    });
+});

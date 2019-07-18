@@ -1,0 +1,61 @@
+import {element, browser, $, by} from 'protractor';
+import { Statements } from './statements.po';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('Statements Search', () => {
+    let app: AppPage;
+    let state: Statements;
+beforeAll(async () => {
+        app = new AppPage();
+        state = new Statements();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+        afterAll(async () => {
+            await app.appLogout();
+        });
+        beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+        it('should select the Statements in the header menu', async () => {
+        await state.clickonStatementsTab();
+        await expect(browser.getCurrentUrl()).toContain('#/home/statements');
+        await expect($('.tabselected').getText()).toBe(data.statements.tabname);
+        await browser.sleep(1000);
+        await expect($('.tabselected').getCssValue('background-color')).toBe('rgba(0, 178, 169, 1)');
+        });
+
+        it('should verify the customer statement dashboard', async () => {
+        await app.getChangeCustomer().click();
+        await state.changeClientwithMultipleServiceArea();
+        await app.waitForMainLoader();
+        await expect($('.ml0:nth-of-type(1) .chart-container').isPresent()).toBe(true);
+        await expect($('.ml0:nth-of-type(2) .chart-container').isPresent()).toBe(true);
+        await expect($('.ml0:nth-of-type(1) h3').getText()).toContain(data.statements.static_text1);
+        await expect($('.ml0:nth-of-type(2) h3').getText()).toContain(data.statements.static_text2);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        await expect($('app-statements .mb0 .s4').getText()).toBe(data.statements.static_text3);
+        await expect($('app-statements .mb0 .center').getText()).toBe(data.statements.static_text4);
+        await expect($('app-statements .mb0 .right-align').getText()).toBe(data.statements.static_text5);
+        await expect($('.pt10 strong').getText()).toBe(data.statements.static_text6);
+        await expect(element(by.xpath('//button[@class="k-button k-secondary mt10 mr5 mb10 ml5 right col s9"]')).
+        getText()).toBe(data.statements.static_text8);
+        // tslint:disable-next-line:max-line-length
+        await expect(element(by.xpath('//button[@class="k-button k-primary-alt mt10 mr5 mb10 ml5 right col s11"]')).getText()).toBe(data.statements.static_text9);
+        });
+
+        it('should be able to see the individual statements by clicking on the view statement(s) corresponding to the respective service area', async () => {
+        await state.checkStatements();
+        });
+
+        it('should be able to see the consolidated statements by clicking on the view statement(s) corresponding to all service areas', async () => {
+        await state.checkMultipleStatements();
+        });
+});

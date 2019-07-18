@@ -1,0 +1,169 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Entity } from './EntitySearch.po';
+import { Invoices } from '../invoices/invoices.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Entity Page: Search Findings - ', () => {
+    let app: AppPage;
+    let ent: Entity;
+    let inv: Invoices;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        ent = new Entity();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should change customer', async () => {
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(ent.readExcelEntity(2, 'B2'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(ent.readExcelEntity(2, 'B2'));
+    });
+    // Able to select the Entity Search in the header menu.
+    it('should Click on Entity Search and verify Entity Search tab is open', async () => {
+        const linkEntity = element(by.linkText('ENTITY SEARCH'));
+        await app.waitForEcClickable(linkEntity);
+        await ent.clickonEntitySearchTab();
+        await app.waitForMainLoader();
+        expect(await  browser.getCurrentUrl()).toContain(data.EntitySearch.EntityLink);
+        expect(await $('.tabselected').getText()).toBe(data.EntitySearch.EntitySearch);
+    });
+    // Able to search Entity by number or Don't know Entity# link.
+    // Able to see Entity information.
+    it('should search Entity by Entity No and verify the required field', async () => {
+        const entitySearch = await $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = await element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = await $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+        expect($$('a.k-link').get(0).getText()).toBe(data.EntitySearch.CustName);
+        expect($$('a.k-link').get(1).getText()).toBe(data.EntitySearch.CustID);
+        expect($$('a.k-link').get(2).getText()).toBe(data.EntitySearch.Invoice);
+        expect($$('a.k-link').get(3).getText()).toBe(data.EntitySearch.RecptNo);
+        expect($$('a.k-link').get(4).getText()).toBe(data.EntitySearch.InvAmt);
+        expect($$('a.k-link').get(5).getText()).toBe(data.EntitySearch.AmtDue);
+        expect($$('a.k-link').get(6).getText()).toBe(data.EntitySearch.InvDate);
+        expect($$('a.k-link').get(7).getText()).toBe(data.EntitySearch.Order);
+        expect($$('a.k-link').get(8).getText()).toBe(data.EntitySearch.Subject);
+        expect($$('a.k-link').get(9).getText()).toBe(data.EntitySearch.Matter);
+    });
+    // Able to see the results for selected Entity
+    // Able to see all the required fields
+    it('should Able to see the results for selected Entity', async () => {
+        const entityResult = await element(by.className('k-pager-info k-label'));
+        await app.waitForEcVisible(entityResult);
+        await expect(await entityResult.isDisplayed()).toBeTruthy();
+        await browser.executeScript('window.scrollTo(0,10000)');
+    });
+    // Able to see the 25-No of items per page
+    it('should Able to see the 25-No of items per page', async () => {
+        await ent.ClickNumofInvoiceDisplayed();
+        await ent.NumofInvoiceDiplayed25();
+        await browser.sleep(2000);
+        await expect(element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toBeLessThan(27);
+    });
+    // Able to see the 50-No of items per page
+    it('should Able to see the 50-No of items per page', async () => {
+        await ent.ClickNumofInvoiceDisplayed();
+        await ent.NumofInvoiceDiplayed50();
+        await browser.sleep(2000);
+        await expect(element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toBeLessThan(52);
+    });
+    // Able to see the 75-No of items per page
+    it('should Able to see the 75-No of items per page', async () => {
+        await ent.ClickNumofInvoiceDisplayed();
+        await ent.NumofInvoiceDiplayed75();
+        await browser.sleep(2000);
+        await expect(element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toBeLessThan(77);
+    });
+    // Able to see the 100-No of items per page
+    it('should Able to see the 100-No of items per page', async () => {
+        await ent.ClickNumofInvoiceDisplayed();
+        await ent.NumofInvoiceDiplayed100();
+        await browser.sleep(2000);
+        await expect(element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toBeLessThan(102);
+    });
+    it('should select Invoice checkbox', async () => {
+        await inv.selectInvoice();
+        await browser.sleep(2000);
+    });
+    it('should select Download Selected Invoice Details Grid from dropdown EXPORT GRID OPTIONS', async () => {
+        await browser.executeScript('window.scrollTo(0,10000)');
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        await browser.sleep(2000);
+        const DownloadselectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(DownloadselectedInvoice);
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        await expect(await $('div.k-widget').isDisplayed()).toBeTruthy();
+    });
+    // Able to download the selected records to the excel by chosing the option as customize No
+    it('should select No from Please confirm pop-up', async () => {
+        const popupNo = await $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        await expect(await $('div.k-widget').isDisplayed()).toBeTruthy();
+        const NoButton = await $('#mainDialog-action-no');
+        await app.waitForEcClickable(NoButton);
+        await NoButton.click();
+        await browser.sleep(2000); // wait for file to download
+        await expect(await $('div.k-widget').isPresent()).toBeFalsy();
+    });
+    it('should select Download Selected Invoice Grid Details from dropdown EXPORT GRID OPTIONS', async () => {
+        await browser.executeScript('window.scrollTo(0,10000)');
+        const ExportGridDropdown = await $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        // Needed for click dropdown element, action has more faster it wont allow to present dropdown to be active
+        await browser.sleep(2000);
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+        const popupNo = await $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect( await $('div.k-widget').isDisplayed()).toBeTruthy();
+    });
+    // Able to download the file using customize as yes and select the fields
+    it('should select Yes from Please confirm pop-up', async () => {
+        const popupNo = await $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect(await $('div.k-widget').isDisplayed()).toBeTruthy();
+        const yesButton = await $$('button.k-button').get(7);
+        await app.waitForEcClickable(yesButton);
+        await $$('button.k-button').get(7).click();
+        const selectRemove = await $$('div.custom-box-div').get(2);
+        await app.waitForEcClickable(selectRemove);
+        await $$('div.custom-box-div').get(2).click();
+        const EC = browser.ExpectedConditions;
+        const exportButton = await element(by.className('k-button k-primary right mt10'));
+        await browser.wait(EC.elementToBeClickable(exportButton), 30000);
+        await(element(by.className('k-button k-primary right mt10')).click());
+        await browser.sleep(5000);   // wait to download file
+        expect(await $('div.k-widget').isPresent()).toBeFalsy();
+    });
+});

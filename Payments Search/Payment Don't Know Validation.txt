@@ -1,0 +1,133 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from './paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Do not know Validation - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    let pay: Payment;
+    const sortasc = $('span.k-icon.k-i-sort-asc-sm');
+    const sortdesc = $('span.k-icon.k-i-sort-desc-sm');
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        pay = new Payment ();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('Should verify the layout of CHANGE CUSTOMER click window', async () => {
+        await inv.clickgetChangeCustomer();
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await expect( element(by.className('k-window-title k-dialog-title')).getText()).toBe(data.chng_cust.c1_title);
+        // tslint:disable-next-line:max-line-length
+        await expect( element(by.cssContainingText('.alt', 'Customer ID')).getText()).toBe(data.chng_cust.c1_cust_id);
+        await expect( $('#customer-id-dialog-input').getAttribute('placeholder')).toBe(data.chng_cust.c1_cust_id);
+        await expect( element(by.cssContainingText('.alt', 'Invoice#')).getText()).toBe(data.chng_cust.c1_inv);
+        await expect( $('#invoice-dialog-input').getAttribute('placeholder')).toBe(data.chng_cust.c1_inv);
+      });
+    it('Should set the context using Customer Number in the search Bar', async () => {
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await $('.contact-text').getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+       });
+    it('should verify Customer ID using Dont Know ID with and Begins With option', async () => {
+        await inv.clickgetChangeCustomer();
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+        await paysrc.donotKnowIDChangeCustomerPopUp();
+        await expect($$('.k-dialog-title').get(1).isDisplayed()).toBeTruthy();
+        await expect(element.all(by.className('k-window-title k-dialog-title')).get(1).getText()).toBe(data.customersearchresult.title);
+        await browser.sleep(1000);
+        await paysrc.clickOndntBeginRadiobtn();
+        await inv.CustomerNamePopUp(app.readExcel(2, 'B6'));
+        await paysrc.clickOndntSearchbtn();
+        await app.waitForMainLoader();
+        await app.validateCorrectCustomerNameSearchResult();
+        await expect( $('#set-customer-button').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnSetCustGoBtn();
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Id);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//strong[contains(text(),"FRANCESCA")]')).getText()).toContain(data.customersearchresult.dki_cntct_name);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.dki_email);
+       });
+    it('should verify Customer ID using Dont Know ID with and Contains option', async () => {
+        await inv.clickgetChangeCustomer();
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+        await paysrc.donotKnowIDChangeCustomerPopUp();
+        await expect( $$('.k-dialog-title').get(1).isDisplayed()).toBeTruthy();
+        await expect( element.all(by.className('k-window-title k-dialog-title')).get(1).getText()).toBe(data.customersearchresult.title);
+        await browser.sleep(3000);
+        await paysrc.clickOndntContaisRadiobtn();
+        await inv.CustomerNamePopUp(app.readExcel(2, 'B6'));
+        await paysrc.clickOndntSearchbtn();
+        await app.waitForMainLoader();
+        await app.validateCorrectCustomerNameSearchResult();
+        await paysrc.clickOnSetCustGoBtn();
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Id);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//strong[contains(text(),"FRANCESCA")]')).getText()).toContain(data.customersearchresult.dki_cntct_name);
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.dki_email);
+    });
+    it('Should verify Customer ID using Dont Know ID with and Exact option', async () => {
+        await inv.clickgetChangeCustomer();
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await paysrc.donotKnowIDChangeCustomerPopUp();
+        await expect( $$('.k-dialog-title').get(1).isDisplayed()).toBeTruthy();
+        await expect( element.all(by.className('k-window-title k-dialog-title')).get(1).getText()).toBe(data.customersearchresult.title);
+        await browser.sleep(3000);
+        await paysrc.clickOndntExactRadiobtn();
+        await inv.CustomerNamePopUp(app.readExcel(2, 'B6'));
+        await paysrc.clickOndntSearchbtn();
+        await app.waitForMainLoader();
+        await app.validateCorrectCustomerNameSearchResult();
+        await paysrc.clickOnSetCustGoBtn();
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.DntKnw_Cust_Id);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//strong[contains(text(),"FRANCESCA")]')).getText()).toContain(data.customersearchresult.dki_cntct_name);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.dki_email);
+    });
+   });

@@ -1,0 +1,227 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page: Sorting - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    const sortasc = $('span.k-icon.k-i-sort-asc-sm');
+    const sortdesc = $('span.k-icon.k-i-sort-desc-sm');
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await inv.clickonInvoiceTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+      await app.appLogout();
+   });
+    beforeEach(async () => {
+      await browser.sleep(3000);
+      });
+
+      it('Change customer and verify deatils' , async () => {
+            await browser.sleep(5000);
+            await inv.clickonInvoiceTab();
+            await browser.sleep(5000);
+            // for change the customer
+            const changeCust = element(by.linkText('NEW SEARCH'));
+            await app.waitForEcClickable(changeCust);
+            await browser.executeScript('arguments[0].click()', changeCust);
+            expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+            await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+            await browser.sleep(1000);
+            await $('#set-customer-button').click();
+            await browser.sleep(5000);
+            expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(inv.readExcelInv(1, 'B4'));
+            expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(inv.readExcelInv(1, 'B5'));
+            expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain(inv.readExcelInv(1, 'B6'));
+            expect(await $('#change-customer-link2').isDisplayed()).toBeTruthy();
+            expect(await $('strong.contact-text').getText()).toContain(inv.readExcelInv(1, 'B7'));
+            expect(await $('span.csc-tertiary-color-dark-blue-gray').getText()).toContain(inv.readExcelInv(1, 'B8'));
+            // tslint:disable-next-line:max-line-length
+            expect(await element(by.xpath('//span[@class="left-align display-inline-block pl10"]/div')).getText()).toContain(inv.readExcelInv(1, 'B9'));
+            await inv.clickonInvoiceStatusDropdown();
+            await browser.sleep(2000);
+            // select All from dropdown
+            await inv.clickonInvoiceStatusDropdownAll();
+            await browser.sleep(1000);
+            await inv.clickSearchButton();
+            await app.waitForMainLoader();
+            await browser.executeScript('window.scrollTo(0,2000)');
+            await browser.sleep(2000);
+          });
+      it('Should verify User is able to Sort Invoice Search Results displayed on the page based on header field Invoice#' , async () => {
+            // await browser.sleep(3000);
+            await inv.SortInvoice();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortInvoice();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to Sort Invoice Search Results displayed on the page based on header field Receipt#' , async () => {
+            await browser.sleep(3000);
+            await inv.SortReceipt();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortReceipt();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      // tslint:disable-next-line:max-line-length
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Invoice Amount' , async () => {
+            await inv.SortInvoiceAmt();
+            await app.waitForMainLoader();
+            await browser.sleep(1000);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortInvoiceAmt();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Amount Due' , async () => {
+            await inv.SortAmountDue();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortAmountDue();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      // tslint:disable-next-line:max-line-length
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Invoice Date' , async () => {
+            await inv.SortInvoiceDate();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortInvoiceDate();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Due Date' , async () => {
+            await inv.SortDueDate();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortDueDate();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      // tslint:disable-next-line:max-line-length
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Contact Name' , async () => {
+            await inv.SortOnContactName();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortOnContactName();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Order' , async () => {
+            await inv.SortOrderNum();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortOrderNum();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Subject' , async () => {
+            await inv.SortOnSubject();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortOnSubject();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      it('Should verify User is able to sort Invoice Search Results displayed on the page based on header field Matter' , async () => {
+            await inv.SortOnMatter();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortasc);
+            expect(await $('span.k-icon.k-i-sort-asc-sm').isDisplayed()).toBeTruthy();
+            await inv.SortOnMatter();
+            await app.waitForMainLoader();
+            await app.waitForEcVisible(sortdesc);
+            expect(await $('span.k-icon.k-i-sort-desc-sm').isDisplayed()).toBeTruthy();
+            await browser.sleep(1000);
+          });
+      // tslint:disable-next-line:max-line-length
+      it('Should Verify that user is able to filter Invoice Search Results displayed on the page based on header field Invoice Amount' , async () => {
+            await browser.executeScript('window.scrollTo(0,0)');
+            const changeCust = element(by.linkText('NEW SEARCH'));
+            await app.waitForEcClickable(changeCust);
+            await browser.executeScript('arguments[0].click()', changeCust);
+            expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+            await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+            await browser.sleep(1000);
+            await $('#set-customer-button').click();
+            await app.waitForMainLoader();
+            await inv.clickonInvoiceStatusDropdown();
+            await browser.sleep(2000);
+            // select All from dropdown
+            await inv.clickonInvoiceStatusDropdownAll();
+            await browser.sleep(1000);
+            await inv.clickSearchButton();
+            await app.waitForMainLoader();
+            await browser.executeScript('window.scrollTo(0,2000)');
+            const invamt = await inv.readExcelInv(1, 'B13');
+            await inv.FilterInvoiceAmt(invamt);
+            await browser.sleep(3000);
+            console.log('Filtered Invoice Amount :: ', invamt);
+            await expect(await element(by.xpath('//table[@class="k-grid-table"]/tbody/tr[1]/td[6]/span')).getAttribute('title')).toBe(invamt);
+          });
+      // tslint:disable-next-line:max-line-length
+      it('Should Verify that user is able to filter Invoice Search Results displayed on the page based on header field Amount Due' , async () => {
+            await browser.executeScript('window.scrollTo(0,0)');
+            const changeCust = element(by.linkText('NEW SEARCH'));
+            await app.waitForEcClickable(changeCust);
+            await browser.executeScript('arguments[0].click()', changeCust);
+            expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+            await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+            await browser.sleep(1000);
+            await $('#set-customer-button').click();
+            await app.waitForMainLoader();
+            await inv.clickonInvoiceStatusDropdown();
+            await browser.sleep(2000);
+            // select All from dropdown
+            await inv.clickonInvoiceStatusDropdownAll();
+            await browser.sleep(1000);
+            await inv.clickSearchButton();
+            await app.waitForMainLoader();
+            await browser.executeScript('window.scrollTo(0,2000)');
+            const amtdue = await inv.readExcelInv(1, 'B10');
+            await inv.FilterAmtDue(amtdue);
+            await browser.sleep(3000);
+            console.log('Filtered Amount Due :: ', amtdue);
+            await expect(await element(by.xpath('//table[@class="k-grid-table"]/tbody/tr[1]/td[7]/span')).getAttribute('title')).toBe(amtdue);
+            await browser.sleep(3000);
+          });
+});

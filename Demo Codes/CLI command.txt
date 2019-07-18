@@ -1,0 +1,3 @@
+npm run protractor protractor.conf.js -- --suite demo
+
+FYI - in VS code use ctrl + ` to open/close the terminal or command line

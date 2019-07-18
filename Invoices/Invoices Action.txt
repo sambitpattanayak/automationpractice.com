@@ -1,0 +1,59 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page : Action - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    beforeAll(async () => {
+        // await browser.waitForAngularEnabled(false) ;
+        app = new AppPage();
+        inv = new Invoices();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+     });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should click and verify CHANGE CUSTOMER', async () => {
+        await inv.clickonInvoiceTab();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+        });
+    it('should set Customer Number in the search Bar', async () => {
+        await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(inv.readExcelInv(1, 'B2'));
+        });
+    it('should click on search button', async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+        });
+    // 1039_iRec_InvoiceActions_ReprintReceipt_001 and 1039_iRec_InvoiceActions_EmailReceipt_002
+    it('should clicks on PDF symbol beside the Receipt # record in the payment results grid', async () => {
+        await browser.executeScript('window.scrollTo(0,2000)');
+        const pdfSym = $$('img.pdf-icon.right').get(0);
+        await app.waitForEcClickable(pdfSym);
+        await expect((pdfSym).isDisplayed()).toBeTruthy();
+        await pdfSym.click();
+        await browser.sleep(2000);
+        });
+    it('should move to parent window', async () => {
+            await browser.switchTo().defaultContent();
+        });
+
+
+});

@@ -1,0 +1,427 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+let app: AppPage;
+app = new AppPage();
+export class PaymentSearch {
+ /**
+   * @name changeClient
+   * @description It will change to a non USD Client
+   * @returns Action
+   */
+  async changeClient() {
+  await $('#customer-id-dialog-input').sendKeys(data.customerdetails.ID_internal_nonusd);
+  await app.buttonGoChangeCustomerPopUp().click();
+  await app.waitForMainLoader();
+  const changedclient = await $('#collectorInfo-accName-accNumber').getText();
+  expect( changedclient).toContain(data.customerdetails.ID_internal_nonusd);
+  }
+   /**
+   * @name FilterInvoice
+   * @description It will Filter Invoice in Search grid
+    */
+   async FilterInvoice(Invoice: string) {
+    element(by.xpath('//tr[@class="k-filter-row"]/td[3]/input')).sendKeys(Invoice);
+ }
+/**
+   * @name clickOnAdvncSrc
+   * @description It will click on Advance Search Icon
+   * @returns Promise
+   */
+  async clickOnAdvncSrc() {
+     return $('span.k-icon.plusMinus.k-i-plus').click();
+  }
+ /**
+   * @name SearchReceipt#
+   * @description It will Search Receipt using Receipt Number
+  */
+   async SearchReceipt(Receipt: string) {
+        $('[placeholder="Receipt#"]').sendKeys(Receipt);
+      }
+
+      /**
+   * @name SearchReceipt#
+   * @description It will Search Receipt using Receipt Number
+  */
+   async SearchInvoice(invoice: string) {
+    $('[placeholder="Invoice#"]').sendKeys(invoice);
+  }
+ /**
+   * @name clickOnClearAll
+   * @description It will click on ClearAll Button
+   * @returns Promise
+   */
+  async clickOnClearAll() {
+    await browser.executeScript('document.getElementsByClassName("k-button k-secondary k-sm-btn right mt20 ").item(0).click()');
+  }
+  /**
+   * @name clickonPaymentStatusDropdown
+   * @description It will click on Payment Status Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentStatusDropdown() {
+    return $$('span.k-input').get(0).click();
+  }
+   /**
+   * @name clickonPaymentStatusApplied
+   * @description It will click on Applied option from Payment Status Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentStatusApplied() {
+    return element(by.xpath('(//li[@class="k-item"])[1]')).click();
+  }
+    /**
+   * @name clickonPaymentStatusUnApplied
+   * @description It will click on UnApplied option from Payment Status Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentStatusUnApplied() {
+    return element(by.xpath('(//li[@class="k-item"])[2]')).click();
+  }
+     /**
+   * @name clickonPaymentStatusParApplied
+   * @description It will click on Partially Applied option from Payment Status Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentStatusParApplied() {
+    return element(by.xpath('(//li[@class="k-item"])[3]')).click();
+  }
+     /**
+   * @name clickonPaymentStatusAll
+   * @description It will click on All option from Payment Status Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentStatusAll() {
+    return $$('li.k-item').get(0).click();
+  }
+  /**
+   * @name clickonPaymentTypeDropdown
+   * @description It will click on Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeDropdown() {
+    return $$('span.k-input').get(1).click();
+  }
+  /**
+   * @name clickonPaymentTypeCC
+   * @description It will click on Credit Card option from Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeCC() {
+    return element(by.xpath('(//li[@class="k-item"])[4]')).click();
+  }
+  /**
+   * @name clickonPaymentTypeACH
+   * @description It will click on ACH option from Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeACH() {
+    return element(by.xpath('(//li[@class="k-item"])[3]')).click();
+  }
+  /**
+   * @name clickonPaymentTypeCheck
+   * @description It will click on Check option from Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeCheck() {
+    return element(by.xpath('(//li[@class="k-item"])[2]')).click();
+  }
+   /**
+   * @name clickonPaymentTypeWire
+   * @description It will click on Wire option from Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeWire() {
+    return element(by.xpath('(//li[@class="k-item"])[1]')).click();
+  }
+    /**
+   * @name clickonPaymentTypeAll
+   * @description It will click on All option from Payment Type Dropdown
+   * @returns Promise
+   */
+  async clickonPaymentTypeAll() {
+    return $$('li.k-item').get(0).click();
+  }
+  /**
+   * @name NameOnCard
+   * @description It will enter Credit Card Name in the Advance search option
+   * @returns Promise
+   */
+  async NameOnCard(CCName: string) {
+    $('[placeholder="Name on Card or Account"]').sendKeys(CCName);
+  }
+    /**
+   * @name CCLast4Digit
+   * @description It will enterLast 4 digit of Credit CardNumber in the Advance search option
+   * @returns Promise
+   */
+  async CCLast4Digit(CCNum: string) {
+    $('[placeholder="Last four digits only"]').sendKeys(CCNum);
+  }
+      /**
+   * @name PaymentAmt
+   * @description It will enterLast Payment Amount in the Advance search option
+   * @returns Promise
+   */
+  async PaymentAmt(Amount: string) {
+    $('[placeholder="Amount"]').sendKeys(Amount);
+  }
+   /**
+   * @name ClickOnAppliedFilter
+   * @description It will Click on Applied label of Filter search result
+    */
+   async ClickOnAppliedFilter() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.PAYMENT_STATUS_APPLIED"]')).click();
+  }
+  /**
+   * @name ClickOnUnAppliedFilter
+   * @description It will Click on UnApplied label of Filter search result
+    */
+   async ClickOnUnAppliedFilter() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.PAYMENT_STATUS_UNAPPLIED"]')).click();
+  }
+   /**
+   * @name ClickOnPAppliedFilter
+   * @description It will Click on Partially Applied label of Filter search result
+    */
+   async ClickOnUnPAppliedFilter() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.PAYMENT_STATUS_PARTIALLYAPPLIED"]')).click();
+  }
+    /**
+   * @name ClickOnALLFilter
+   * @description It will Click on Partially Applied label of Filter search result
+    */
+   async ClickOnALLFilter() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.PAYMENT_STATUS_ALL"]')).click();
+  }
+    /**
+   * @name PymntStartDateCalendarIcon
+   * @description It will click on Calendar Icon of start date payment date range
+   * @returns Promise
+   */
+  async PymntStartDateCalendarIcon() {
+    return $$('span.mydpicon.icon-mydpcalendar').get(2).click();
+  }
+   /**
+   * @name PymntEndDateCalendarIcon
+   * @description It will click on Calendar Icon of end date payment date range
+   * @returns Promise
+   */
+  async PymntEndDateCalendarIcon() {
+    return $$('span.mydpicon.icon-mydpcalendar').get(3).click();
+  }
+   /**
+   * @name SetPymntStartDateInput
+   * @description It will Set Calendar Start date
+   */
+  async SetPymntStartDateInput (Start: string) {
+    $$('input[placeholder="Start Date"]').get(1).sendKeys(Start);
+}
+ /**
+* @name SetpymntEndDateInput
+* @description It will set on Calendar End date
+*/
+async SetpymntEndDateInput (End: string) {
+     $$('input[placeholder="End Date"]').get(1).sendKeys(End);
+}
+  /**
+  * @name SortPaymentAmt
+  * @description It will Sort the Payment Amount field
+  * @returns Promise
+  */
+ async SortPaymentAmt() {
+  const ele = browser.driver.findElement(by.linkText('PAYMENT AMOUNT'));
+  browser.executeScript('arguments[0].click()', ele);
+  // element(by.linkText('PAYMENT AMOUNT')).click();
+
+}
+  /**
+  * @name SortUnappliedAmt
+  * @description It will Sort the Unapplied Amount field
+  * @returns Promise
+  */
+ async SortUnappliedAmt() {
+  // element(by.linkText('UNAPPLIED/ON ACCOUNT')).click();
+  const ele = browser.driver.findElement(by.linkText('UNAPPLIED/ON ACCOUNT'));
+  browser.executeScript('arguments[0].click()', ele);
+}
+ /**
+  * @name SortPaymentDt
+  * @description It will Sort the Payment Date field
+  * @returns Promise
+  */
+ async SortPaymentDt() {
+  // element(by.linkText('PAYMENT DATE')).click();
+  const ele = browser.driver.findElement(by.linkText('PAYMENT DATE'));
+  browser.executeScript('arguments[0].click()', ele);
+}
+ /**
+  * @name SortPaymentType
+  * @description It will Sort the Payment TYPE field
+  * @returns Promise
+  */
+ async SortPaymentType() {
+  // element(by.linkText('PAYMENT TYPE')).click();
+  const ele = browser.driver.findElement(by.linkText('PAYMENT TYPE'));
+  browser.executeScript('arguments[0].click()', ele);
+}
+/**
+   * @name FilterReceipt
+   * @description It will Filter Receipt in Search grid
+    */
+   async FilterReceipt(rcpt: string) {
+    // $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(1).sendKeys(rcpt);
+    element(by.xpath('//tr[@class="k-filter-row"]/td[2]/input')).sendKeys(rcpt);
+ }
+ /**
+   * @name FilterPymntInv
+   * @description It will Filter Payment Invoice in Search grid
+    */
+   async FilterPymntInv(Inv: string) {
+    element(by.xpath('//tr[@class="k-filter-row"]/td[4]/input')).sendKeys(Inv);
+ }
+ /**
+   * @name FilterPymntAmnt
+   * @description It will Filter Payment Amount in Search grid
+    */
+   async FilterPymntAmnt(Amnt: string) {
+    element(by.xpath('//tr[@class="k-filter-row"]/td[4]/input')).sendKeys(Amnt);
+ }
+  /**
+   * @name FilterUnappliedAmt
+   * @description It will Filter Unapplied amount in Search grid
+    */
+   async FilterUnappliedAmt(Amnt: string) {
+    element(by.xpath('//tr[@class="k-filter-row"]/td[5]/input')).sendKeys(Amnt);
+ }
+  /**
+   * @name FilterPymntType
+   * @description It will Filter Unapplied amount in Search grid
+    */
+   async FilterPymntType(Type: string) {
+    element(by.xpath('//tr[@class="k-filter-row"]/td[7]/input')).sendKeys(Type);
+ }
+  /**
+  * @name ClickOnMultiplePaymentReceipt
+  * @description It will click on Multiple receipt
+  * @returns Promise
+  */
+ async ClickOnMultiplePaymentReceipt() {
+  await browser.executeScript('document.getElementsByClassName("mb5").item(0).click()');
+}
+/**
+  * @name ClickOnParticularReceipt
+  * @description It will click on particular  receipt
+  * @returns Promise
+  */
+ async ClickOnParticularReceipt() {
+  await browser.executeScript('document.getElementsByClassName("left col s7 no-padding truncate").item(0).click()');
+}
+/**
+  * @name ClickOnParticularInvoice
+  * @description It will click on particular Invoice
+  * @returns Promise
+  */
+ async ClickOnParticularInvoice() {
+  return element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[3]/span[1]')).click();
+}
+/**
+   * @name clickOnPDFicon
+   * @description It will click on Advance Search Icon
+   * @returns Promise
+   */
+  async clickOnPDFicon() {
+    return $$('img.pdf-icon.left').get(0).click();
+ }
+ /**
+   * @name clickOndntBeginRadiobtn
+   * @description It will click on BeginWith Radio Button of Dont Know Link
+   * @returns Promise
+   */
+  async clickOndntBeginRadiobtn() {
+    const ele = await $$('.entity-radio-label').get(0);
+   return browser.executeScript('arguments[0].click()', ele);
+ }
+ /**
+   * @name clickOndntBeginRadiobtn
+   * @description It will click on Conatins Radio Button of Dont Know Link
+   * @returns Promise
+   */
+  async clickOndntContaisRadiobtn() {
+     const ele = await $$('.entity-radio-label').get(1);
+     return browser.executeScript('arguments[0].click()', ele);
+  }
+  /**
+   * @name clickOndntExactRadiobtn
+   * @description It will click on Exact Radio Button of Dont Know Link
+   * @returns Promise
+   */
+  async clickOndntExactRadiobtn() {
+     const ele = await $$('.entity-radio-label').get(2);
+     return  browser.executeScript('arguments[0].click()', ele);
+  }
+    /**
+   * @name clickOndntSearchbtn
+   * @description It will click on Search Button of Dont Know Popup screen
+   * @returns Promise
+   */
+  async clickOndntSearchbtn() {
+      const ele1 = await element.all(by.className('k-button k-primary right')).get(1);
+     return browser.executeScript('arguments[0].click()', ele1);
+  }
+    /**
+   * @name clickOnSetCustGoBtn
+   * @description It will click on Go Button of Customer Popup screen
+   * @returns Promise
+   */
+  async clickOnSetCustGoBtn() {
+     const ele = await $('#set-customer-button');
+    return browser.executeScript('arguments[0].click()', ele);
+ }
+   /**
+   * @name clickDon'tKnowIDonChangeCustomerPopUp
+   * @description It will find 'Don't Know ID' link on the Change Customer Pop Up
+   * @returns Element
+   */
+  async donotKnowIDChangeCustomerPopUp() {
+   const ele = await element(by.partialLinkText('Know ID?'));
+    return browser.executeScript('arguments[0].click()', ele);
+  }
+  /**
+   * @name clickonPaymentTab
+   * @description It will click on Payment Tab
+   * @returns Promise
+   */
+  async clickonPaymentTab() {
+   const ele = await element(by.linkText('PAYMENTS')).click();
+   return browser.executeScript('arguments[0].click()', ele);
+  }
+  /**
+   * @returns data read from excel. First install : 'npm install xlsx'
+   */
+  readExcelpaysrc(sheet_index, cellnumber) {
+    const XLSX = require('xlsx');
+    const testEnv = browser.params.environment.env;
+    let workbook = null;
+    if (testEnv === 'DEV') {
+    workbook = XLSX.readFile('e2e/payment/testdataPaymentSearch_DEV.xlsx');
+    }else if (testEnv === 'QA') {
+    workbook = XLSX.readFile('e2e/payment/testdataPaymentSearch_QA.xlsx');
+    }
+    const sheetindex = workbook.SheetNames[sheet_index];
+    const worksheet = workbook.Sheets[sheetindex];
+    const readValue = worksheet[cellnumber];
+    const desired_value = (readValue ? readValue.v : undefined);
+    return desired_value;
+  }
+   /**
+   * @name SendBlankSpace
+   * @description It will Search Receipt using Receipt Number
+  */
+ async SendBlankSpace(rcpt: string) {
+   // tslint:disable-next-line:quotemark
+  await $('#invoice-dialog-input').sendKeys(rcpt);
+}
+
+
+}

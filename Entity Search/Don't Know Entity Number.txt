@@ -1,0 +1,193 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Entity } from './EntitySearch.po';
+import { Invoices } from '../invoices/invoices.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Entity Page: Do Not Know Entity# - ', () => {
+    let app: AppPage;
+    let ent: Entity;
+    let inv: Invoices;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        ent = new Entity();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should change change customer', async () => {
+        // await app.cancelCustomerOrInvoice();    // open for single spec execution
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(ent.readExcelEntity(2, 'B2'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        // await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(data.EntitySearch.CustomerNo);
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(ent.readExcelEntity(2, 'B2'));
+        });
+    // Able to select the Entity Search in the header menu.
+    it('should Click on Entity Search and verify Entity Search tab is open', async () => {
+        const linkEntity = await element(by.linkText('ENTITY SEARCH'));
+        await app.waitForEcClickable(linkEntity);
+        await ent.clickonEntitySearchTab();
+        await app.waitForMainLoader();
+        expect(await  browser.getCurrentUrl()).toContain(data.EntitySearch.EntityLink);
+        expect(await $('.tabselected').getText()).toBe(data.EntitySearch.EntitySearch);
+        });
+    // Able to search Entity by Don't Know Entity link.
+    // Able to Search Entity Name by exact value.
+    it('should search Entity by Dont Know Entity#? link and able to Search Entity Name by Exact value', async () => {
+        const dontKnowEntity = await $('#entity-dontKnow');
+        await app.waitForEcClickable(dontKnowEntity);
+        await ent.dontKnowEntity();
+        const searchEntityNamePopup = await $('[placeholder="Type the Entity name"]');
+        await app.waitForEcVisible(searchEntityNamePopup);
+        // verify dont know popup
+        expect(await $('div.k-window-title.k-dialog-title').getText()).toBe(data.EntitySearch.SearchEntity);
+        expect(await element(by.xpath('//h3[contains(text(),"Entity Name")]')).getText()).toContain(data.EntitySearch.EntityNameCol);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(0).getText()).toBe(data.EntitySearch.BeginWith);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(1).getText()).toBe(data.EntitySearch.Contains);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(2).getText()).toBe(data.EntitySearch.Exact);
+
+        await ent.searchEntityName();
+        const SearchButtonPopup = await $('button.k-button.k-primary.right');
+        await app.waitForEcClickable(SearchButtonPopup);
+        await SearchButtonPopup.click();
+        await app.waitForMainLoader();
+        await browser.sleep(3000);
+        await ent.selectEntity();
+        const selectButton = await element(by.buttonText('SELECT'));
+        await app.waitForEcClickable(selectButton);
+        await ent.clickSelectButton();
+        const searchButton = await element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = await $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+        expect(await $$('a.k-link').get(0).getText()).toBe(data.EntitySearch.CustName);
+        expect(await $$('a.k-link').get(1).getText()).toBe(data.EntitySearch.CustID);
+        expect(await $$('a.k-link').get(2).getText()).toBe(data.EntitySearch.Invoice);
+        expect(await $$('a.k-link').get(3).getText()).toBe(data.EntitySearch.RecptNo);
+        expect(await $$('a.k-link').get(4).getText()).toBe(data.EntitySearch.InvAmt);
+        expect(await $$('a.k-link').get(5).getText()).toBe(data.EntitySearch.AmtDue);
+        expect(await $$('a.k-link').get(6).getText()).toBe(data.EntitySearch.InvDate);
+        expect(await $$('a.k-link').get(7).getText()).toBe(data.EntitySearch.ContactName);
+        expect(await $$('a.k-link').get(8).getText()).toBe(data.EntitySearch.Order);
+        expect(await $$('a.k-link').get(9).getText()).toBe(data.EntitySearch.Subject);
+        expect(await $$('a.k-link').get(10).getText()).toBe(data.EntitySearch.Matter);
+        });
+    // Able to Search Entity Name by contains value.
+    it('should search Entity by Dont Know Entity link and able to Search Entity Name by Contains value', async () => {
+        const dontKnowEntity = await $('#entity-dontKnow');
+        await app.waitForEcClickable(dontKnowEntity);
+        await ent.dontKnowEntity();
+        const searchEntityNamePopup = await $('[placeholder="Type the Entity name"]');
+        await app.waitForEcVisible(searchEntityNamePopup);
+        // verify dont know popup
+        expect(await $('div.k-window-title.k-dialog-title').getText()).toBe(data.EntitySearch.SearchEntity);
+        expect(await element(by.xpath('//h3[contains(text(),"Entity Name")]')).getText()).toContain(data.EntitySearch.EntityNameCol);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(0).getText()).toBe(data.EntitySearch.BeginWith);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(1).getText()).toBe(data.EntitySearch.Contains);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(2).getText()).toBe(data.EntitySearch.Exact);
+
+        const containsRadioButton = await $$('label.k-radio-label.entity-radio-label').get(1);
+        await containsRadioButton.click();
+        await ent.containsEntityName();
+        const SearchButtonPopup = await $('button.k-button.k-primary.right');
+        await app.waitForEcClickable(SearchButtonPopup);
+        await SearchButtonPopup.click();
+        await app.waitForMainLoader();
+        await browser.sleep(2000); // for conatins takes its took more time to load
+
+        const resultContains = await $$('div.result-details').get(0);
+        await app.waitForEcVisible(resultContains);
+
+        await ent.selectEntity();
+        const selectButton = await element(by.buttonText('SELECT'));
+        await app.waitForEcClickable(selectButton);
+        await ent.clickSelectButton();
+        const searchButton = await element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = await $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect(await(EntityResult).isDisplayed()).toBeTruthy();
+        expect(await $$('a.k-link').get(0).getText()).toBe(data.EntitySearch.CustName);
+        expect(await $$('a.k-link').get(1).getText()).toBe(data.EntitySearch.CustID);
+        expect(await $$('a.k-link').get(2).getText()).toBe(data.EntitySearch.Invoice);
+        expect(await $$('a.k-link').get(3).getText()).toBe(data.EntitySearch.RecptNo);
+        expect(await $$('a.k-link').get(4).getText()).toBe(data.EntitySearch.InvAmt);
+        expect(await $$('a.k-link').get(5).getText()).toBe(data.EntitySearch.AmtDue);
+        expect(await $$('a.k-link').get(6).getText()).toBe(data.EntitySearch.InvDate);
+        expect(await $$('a.k-link').get(7).getText()).toBe(data.EntitySearch.ContactName);
+        expect(await $$('a.k-link').get(8).getText()).toBe(data.EntitySearch.Order);
+        expect(await $$('a.k-link').get(9).getText()).toBe(data.EntitySearch.Subject);
+        expect(await $$('a.k-link').get(10).getText()).toBe(data.EntitySearch.Matter);
+        });
+    // Able to Search Entity Name by begins with value.
+    it('should search Entity by Dont Know Entity link and able to Search Entity Name by Begins With value', async () => {
+        const dontKnowEntity = await $('#entity-dontKnow');
+        await app.waitForEcClickable(dontKnowEntity);
+        await ent.dontKnowEntity();
+        const searchEntityNamePopup = await $('[placeholder="Type the Entity name"]');
+        await app.waitForEcVisible(searchEntityNamePopup);
+        // verify dont know popup
+        expect(await $('div.k-window-title.k-dialog-title').getText()).toBe(data.EntitySearch.SearchEntity);
+        expect(await element(by.xpath('//h3[contains(text(),"Entity Name")]')).getText()).toContain(data.EntitySearch.EntityNameCol);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(0).getText()).toBe(data.EntitySearch.BeginWith);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(1).getText()).toBe(data.EntitySearch.Contains);
+        expect(await $$('label.k-radio-label.entity-radio-label').get(2).getText()).toBe(data.EntitySearch.Exact);
+
+        const beginsRadioButton = await $$('label.k-radio-label.entity-radio-label').get(0);
+        await beginsRadioButton.click();
+        await ent.beginsEntityName();
+        const SearchButtonPopup = await $('button.k-button.k-primary.right');
+        await app.waitForEcClickable(SearchButtonPopup);
+        await SearchButtonPopup.click();
+        await app.waitForMainLoader();
+        await browser.sleep(2000);
+
+        const resultContains = await $$('div.result-details').get(0);
+        await app.waitForEcVisible(resultContains);
+
+        await ent.selectEntity();
+        const selectButton = await element(by.buttonText('SELECT'));
+        await app.waitForEcClickable(selectButton);
+        await ent.clickSelectButton();
+        const searchButton = await element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = await $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        expect(await (EntityResult).isDisplayed()).toBeTruthy();
+        expect(await $$('a.k-link').get(0).getText()).toBe(data.EntitySearch.CustName);
+        expect(await $$('a.k-link').get(1).getText()).toBe(data.EntitySearch.CustID);
+        expect(await $$('a.k-link').get(2).getText()).toBe(data.EntitySearch.Invoice);
+        expect(await $$('a.k-link').get(3).getText()).toBe(data.EntitySearch.RecptNo);
+        expect(await $$('a.k-link').get(4).getText()).toBe(data.EntitySearch.InvAmt);
+        expect(await $$('a.k-link').get(5).getText()).toBe(data.EntitySearch.AmtDue);
+        expect(await $$('a.k-link').get(6).getText()).toBe(data.EntitySearch.InvDate);
+        expect(await $$('a.k-link').get(7).getText()).toBe(data.EntitySearch.ContactName);
+        expect(await $$('a.k-link').get(8).getText()).toBe(data.EntitySearch.Order);
+        expect(await $$('a.k-link').get(9).getText()).toBe(data.EntitySearch.Subject);
+        expect(await $$('a.k-link').get(10).getText()).toBe(data.EntitySearch.Matter);
+        });
+});

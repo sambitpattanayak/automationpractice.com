@@ -1,0 +1,37 @@
+TEST SUITES
+
+npm run protractor protractor.conf.js -- --suite login --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite change_customer --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite dashboard --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite external_user --params.environment.env=QA --params.user_type.isExternal=true
+npm run protractor protractor.conf.js -- --suite make_payments --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite matter_number_update --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite statements_search --params.environment.env=QA
+PAYMENTS
+npm run protractor protractor.conf.js -- --suite payments_advanced_search --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payments_dontKnow_validation --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payments_download_summary --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payments_search --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payments_export_email --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payments_search_sorting --params.environment.env=QA
+INVOICES
+npm run protractor protractor.conf.js -- --suite invoices_advanced_search --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_dontKnow_validation --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_download_summary --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_search --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_search_filter --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_search_sorting --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_action --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_action_2 --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_action_email --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_action_image --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_summarized --params.environment.env=QA
+ENTITY SEARCH
+npm run protractor protractor.conf.js -- --suite entity_search_matter_update --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite entity_search_sorting --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite entity_search_dontKnow_entity --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite entity_search_filter --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite entity_search_action_export --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite entity_search_module --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite invoices_module --params.environment.env=QA
+npm run protractor protractor.conf.js -- --suite payment_search_module --params.environment.env=QA

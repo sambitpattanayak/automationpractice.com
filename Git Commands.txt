@@ -1,0 +1,15 @@
+Steps	Description	GIT Commands	GIT Commands	GIT Commands			spattana
+1	Commit changes in e2e						It'sGonnabehApPeN@2019
+2	Switch to Deploy branch in VS Code	git checkout deploy		git checkout develop			
+3	Fetch latest codes from Upstream	git fetch upstream	git fetch upstream	git fetch upstream			
+4	Merge Upstream with deploy	git pull upstream e2e	git pull upstream e2e	git rebase upstream/deploy_wave2			
+5	Switch to e2e	git checkout e2e		git checkout e2e			
+6	Merge deploy with e2e	git merge deploy		git merge develop			
+7	Push your code to Origin	git push origin e2e					
+							
+							
+							
+		git pull upstream build-patch-1					
+							
+							
+		git push origin deploy_wave2					

@@ -1,0 +1,224 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Entity } from './EntitySearch.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Entity Page: Filter Entity Search Results - ', () => {
+    let app: AppPage;
+    let ent: Entity;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        ent = new Entity();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(ent.readExcelEntity(2, 'B2'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(ent.readExcelEntity(2, 'B2'));
+        await browser.sleep(3000);
+        const linkEntity = element(by.linkText('ENTITY SEARCH'));
+        await app.waitForEcClickable(linkEntity);
+        await ent.clickonEntitySearchTab();
+        await app.waitForMainLoader();
+        expect(await  browser.getCurrentUrl()).toContain(data.EntitySearch.EntityLink);
+        expect(await $('.tabselected').getText()).toBe(data.EntitySearch.EntitySearch);
+        await browser.sleep(2000);
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+        await browser.executeScript('window.scrollTo(0,10000)');
+        const entityResult = element(by.className('k-pager-info k-label'));
+        await app.waitForEcVisible(entityResult);
+        expect((entityResult).isDisplayed()).toBeTruthy();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    afterEach(async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+        const entitySearch = $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        const EntityResult = $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+        await browser.executeScript('window.scrollTo(0,10000)');
+        const entityResult = element(by.className('k-pager-info k-label'));
+        await app.waitForEcVisible(entityResult);
+        expect((entityResult).isDisplayed()).toBeTruthy();
+        });
+
+    // Able to filter by Customer Name
+    it('should Able to filter by Customer Name', async () => {
+        const custName = element(by.xpath('//tr[1]/td[2]/span')).getText();
+        await ent.filterCustomerName(custName);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tr[1]/td[2]/span')).getText()).toContain(custName);
+    });
+    // Able to filter by Customer ID
+    it('should Able to filter by Customer ID', async () => {
+        const custId = element(by.xpath('//tbody/tr[1]/td[3]/span')).getText();
+        await ent.filterCustomerID(custId);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[3]/span')).getText()).toContain(custId);
+    });
+    // Able to filter by Invoice#
+    it('should Able to filter by Invoice#', async () => {
+        const invoice = element(by.xpath('//tbody/tr[1]/td[4]')).getText();
+        await ent.filterInvoive(invoice);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[4]')).getText()).toContain(invoice);
+    });
+    // Able to filter by Receipt Number
+    it('should Able to filter by Receipt Number', async () => {
+    await ent.filterRecipttNo(ent.readExcelEntity(2, 'B20'));
+    await browser.sleep(1000);
+    expect(element(by.xpath('//tbody/tr[1]/td[5]')).getText()).toContain(data.EntitySearch.Multiple);
+    });
+    // Able to filter by Invoice Amount
+    it('should Able to filter by Invoice Amount', async () => {
+        const InvAmt = element(by.xpath('//tbody/tr[1]/td[6]')).getText();
+        await ent.filterInvAmount(InvAmt);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[6]')).getText()).toContain(InvAmt);
+    });
+    // Able to filter by Amount due
+    it('should Able to filter by Amount due', async () => {
+        const amtDue = element(by.xpath('//tbody/tr[1]/td[7]')).getText();
+        await ent.filterAmountDue(amtDue);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[7]')).getText()).toContain(amtDue);
+    });
+    // Able to filter by Contact Name
+    it('should Able to filter by Contact Name', async () => {
+        const cntName = element(by.xpath('//tbody/tr[1]/td[9]')).getText();
+        await ent.contactName(cntName);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[9]')).getText()).toContain(cntName);
+    });
+    // Able to filter by Order#
+    it('should Able to filter by Order#', async () => {
+        const orderNo = element(by.xpath('//tbody/tr[1]/td[10]')).getText();
+        await ent.orderNo(orderNo);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[10]')).getText()).toContain(orderNo);
+    });
+    // Able to filter by Subject
+    it('should Able to filter by Subject', async () => {
+        const subject = element(by.xpath('//tbody/tr[2]/td[11]/span')).getText();
+        await ent.subject(subject);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[11]/span')).getText()).toContain(subject);
+    });
+    // Able to filter by Matter
+    it('should Able to filter by Matter', async () => {
+        const matter = await ent.readExcelEntity(2, 'B5');
+        await ent.matter(matter);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tr[@ng-reflect-logical-row-index="2"]//td[12]//div[1]/span[1]')).getText()).toContain(matter);
+    });
+    // Able to filter by Invoice Status - All
+    it('should Able to filter by Invoice Status - All', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        const all = $('button.k-state-active.k-button.k-outline.k-group-start');
+        await app.waitForEcVisible(all);
+        expect(all.getText()).toContain(data.EntitySearch.filterEntity.All);
+    });
+    // Able to filter by Invoice Status - Closed for Non Payment
+    it('should Able to filter by Invoice Status - Closed for Non Payment', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await ent.closeNonPayment();
+        expect($('button.k-button.k-outline.k-state-active').getText()).toBe(data.EntitySearch.filterEntity.closeNonPayment);
+        await ent.activeFilter();
+    });
+    // Able to filter by Invoice Status - Closed
+    it('should Able to filter by Invoice Status - Closed', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await ent.closed();
+        expect($('button.k-button.k-outline.k-state-active').getText()).toBe(data.EntitySearch.filterEntity.closed);
+        await ent.activeFilter();
+    });
+    // Able to filter by Invoice Status - Past Due
+    it('should Able to filter by Invoice Status - Past Due', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await ent.pastDue();
+        expect(await $('button.k-button.k-outline.k-state-active').getText()).toBe(data.EntitySearch.filterEntity.pastDue);
+        await ent.activeFilter();
+    });
+    // Able to filter by Invoice Status - Open Current
+    it('should Able to filter by Invoice Status - Open Current', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        await ent.openCurrent();
+        expect($('button.k-button.k-outline.k-group-end.k-state-active').getText()).toBe(data.EntitySearch.filterEntity.openCurrent);
+        await ent.activeFilter();
+    });
+    // Able to filter by Invoice date Range Filter Search Result
+    it('should Able to filter by Invoice date Range', async () => {
+        await browser.executeScript('window.scrollTo(0,0)');
+        const StartDate = $$('input.selection.ng-untouched.ng-pristine.ng-valid').get(2);
+        await app.waitForEcVisible(StartDate);
+        const date = element(by.xpath('//tbody/tr[1]/td[8]/span')).getText();
+        await ent.startDate(date);
+        await browser.sleep(1000);
+        await ent.endDate(date);
+        await browser.sleep(1000);
+        expect(element(by.xpath('//tbody/tr[1]/td[8]/span')).getText()).toContain(date);
+    });
+    // Able to filter by Invoice Date
+    it('should Able to filter by Invoice Date', async () => {
+        await browser.sleep(2000);
+        const invDate = await $$('input.k-input').get(1);
+        await invDate.sendKeys(protractor.Key.BACK_SPACE); // robot class action from keyboard, cant be taken from excel
+        await invDate.sendKeys(protractor.Key.BACK_SPACE);
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B12'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B13'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B14'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B15'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B16'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B17'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B18'));
+        await invDate.sendKeys(ent.readExcelEntity(2, 'B19'));
+        await browser.sleep(3000);
+        const dateText = ent.readExcelEntity(2, 'B12') + '' +
+                        ent.readExcelEntity(2, 'B13') + '/' +
+                        ent.readExcelEntity(2, 'B14') + '' +
+                        ent.readExcelEntity(2, 'B15') + '/' +
+                        ent.readExcelEntity(2, 'B16') + '' +
+                        ent.readExcelEntity(2, 'B17') + '' +
+                        ent.readExcelEntity(2, 'B18') + '' +
+                        ent.readExcelEntity(2, 'B19') + '';
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="2"]//td[8]//span[1]')).getText()).toContain(dateText);
+    });
+
+});

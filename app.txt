@@ -1,0 +1,34 @@
+import {browser, $} from 'protractor';
+import { AppPage } from './app.po';
+const data = require('./app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iRecievables App', () => {
+  let app: AppPage;
+  beforeAll(async () => {
+    app = new AppPage();
+    await app.appLogin(testEnv, userType);
+    await app.waitForUrlToChangeTo('dashboard');
+    await app.waitForMainLoader();
+    console.log('before all completed.');
+  });
+
+  it('should login', async () => {
+    expect(await browser.getCurrentUrl()).toContain(data.app.tabname);
+  });
+
+  it('should logout', async () => {
+    await app.cancelCustomerOrInvoice();
+    expect(await $('li.ab-dropdown').isDisplayed()).toBeTruthy();
+    expect(await $('#accountMenuInner').isDisplayed()).toBeFalsy();
+    await $('[data-target] .ab-link-text').click();
+    await browser.sleep(2000);
+    expect(await $('#accountMenuInner').isDisplayed()).toBeTruthy();
+    expect(await app.getAppLogout().isDisplayed()).toBeTruthy();
+    await $('[data-function]').click(); // clicks Logout
+    await browser.sleep(3000);
+    expect(await browser.getCurrentUrl()).toContain('logout.pwd');
+    await browser.sleep(3000);
+  });
+});

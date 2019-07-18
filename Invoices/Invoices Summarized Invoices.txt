@@ -1,0 +1,127 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+import { Dashboard } from '../dashboard/dashboard.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page : Summarized Invoices - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let dash: Dashboard;
+
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        dash = new Dashboard();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+     });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('Should change customer', async () => {
+        await inv.clickonInvoiceTab();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await browser.sleep(1000);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(inv.readExcelInv(1, 'B11'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+    });
+
+    // tslint:disable-next-line:max-line-length
+    // 1038_iRec_SummarizedInvoice_001_002 and 1038_iRec_SummarizedInvoice_Ability to see Summarized Invoice status based on child invoices_006
+    it('Should Search Invoices using Summarized Invoice and count of child invoices is displayed', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        const advSearch = $('div.toggleButton.closed');
+        await app.waitForEcClickable(advSearch);
+        await advSearch.click();
+        expect(element(by.xpath('(//input[@placeholder="Invoice#"])[2]')).isDisplayed()).toBeTruthy();
+        await browser.sleep(2000); // used for sendkeys in below line after clicking on + it need pause to do action
+        await inv.SetSummerizedInvoice(inv.readExcelInv(1, 'B12'));
+        browser.executeScript('document.getElementsByTagName("button")[3].click()');
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,5000)');
+        const countInvoice = $('kendo-pager-info.k-pager-info.k-label');
+        await app.waitForEcVisible(countInvoice);
+        expect(countInvoice.isDisplayed()).toBeTruthy();
+    });
+
+    // 1038_iRec_SummarizedInvoice_Ability to pay all the child invoices at once just by selecting Summarized Invoice_005
+    it('Should Select the summarized invoice by clicking on the checkbox', async () => {
+        await browser.sleep(2000); // used js in next step to click on checkbox so it need pause
+        await inv.selectInvoice();
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await expect((ExportGridDropdown).isDisplayed()).toBeTruthy();
+    });
+
+    // 1038_iRec_SummarizedInvoice_Ability to export all the child invoices by selecting Summarized Invoice_004
+    it('Should Export all the child invoice from Summerized Invoice', async () => {
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        // tslint:disable-next-line:max-line-length
+        await browser.sleep(2000); // Needed for click dropdown element, action has more faster it wont allow to present dropdown to be active
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+        await expect( $('div.k-widget').isDisplayed()).toBeTruthy();
+        const NoButton = $$('button.k-button').get(9);
+        await app.waitForEcClickable(NoButton);
+        await NoButton.click();
+        await browser.sleep(2000); // wait to download file
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        // tslint:disable-next-line:max-line-length
+        await browser.sleep(2000); // Needed for click dropdown element, action has more faster it wont allow to present dropdown to be active
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+        await expect($('div.k-widget').isDisplayed()).toBeTruthy();
+        await $$('button.k-button').get(8).click();
+        await $$('div.custom-box-div').get(2).click();
+        const EC = browser.ExpectedConditions;
+        const exportButton = element(by.className('k-button k-primary right mt10'));
+        await browser.wait(EC.elementToBeClickable(exportButton), 30000);
+        await(element(by.className('k-button k-primary right mt10')).click());
+        await browser.sleep(3000); // wait to download file
+    });
+
+    // 1038_iRec_SummarizedInvoice_003
+    it('Should Search Invoices using Summarized Invoice and select some specific child invoices for payment', async () => {
+        await browser.executeScript('window.scrollTo(0,300)');
+        const EC = browser.ExpectedConditions;
+        await browser.wait(EC.elementToBeClickable($$('span.k-switch-handle').get(0)), 30000);
+        await browser.sleep(2000); // waited for element to be clickbale
+        await $$('span.k-switch-handle').get(0).click();
+        const payButton = $('button.k-lg-btn.k-button.k-primary.mt5.mr10.mb5.ml5.right');
+        await browser.wait(EC.elementToBeClickable(payButton), 30000);
+        await payButton.click();
+        const popupPay = element(by.xpath('//h2[@class="center payment-box"]'));
+        await app.waitForEcVisible(popupPay);
+        await expect(element(by.xpath('//h2[@class="center payment-box"]')).getText()).toContain(data.SummerizedInvoice.SelectPayMethod);
+        await expect(element(by.xpath('//span[@id="stage1-footer-due-label"]')).getText()).toContain(data.SummerizedInvoice.TotalDue);
+        await expect(element(by.xpath('//span[@id="stage1-footer-pay-label"]')).getText()).toContain(data.SummerizedInvoice.ToPay);
+        await element(by.xpath('(//span[@class="radio-btn"])[1]')).click();
+        await element(by.buttonText('Next')).click();
+        const makePayment = $('h2.center');
+        await app.waitForEcVisible(makePayment);
+        await expect(makePayment.isDisplayed()).toBeTruthy();
+        await expect(makePayment.getText()).toContain(data.SummerizedInvoice.MakePayment);
+    });
+
+
+});

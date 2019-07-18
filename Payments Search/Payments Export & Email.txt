@@ -1,0 +1,92 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { PaymentSearch } from './paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Export Email - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    let pay: Payment;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        pay = new Payment ();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    // 1038_iRec_PaymentSearch_ViewPaymentInstructionsInPDF_014
+    it('should clicks on PDF symbol beside the Receipt # record in the payment results grid', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        const pdfSym = $$('img.pdf-icon.left').get(0);
+        await app.waitForEcClickable(pdfSym);
+        await expect((pdfSym).isDisplayed()).toBeTruthy();
+        await paysrc.clickOnPDFicon();
+        await browser.sleep(30000);
+        });
+    it('should close 2nd window and move to parent window', async () => {
+        await browser.getAllWindowHandles().then((handles) => {
+        browser.driver.switchTo().window(handles[0]);
+        browser.sleep(1000);
+        });
+        });
+    it('should verify new window has closed and match open page logo', async () => {
+        await app.waitForMainLoader();
+        await expect($('#iRec-brand-logo').getText()).toBe(data.invoice.InvoiceLogoText);
+        });
+    // 1039_iRec_PaymentSearch_Ability to Email Invoice PDF-For Renewal only_008 / 009/ 010
+    it('should click on payment options Dropdown', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);  // used js in next step to click on checkbox so it required pause
+        await inv.selectAllInvoices();
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        });
+    // 1038_iRec_PaymentSearch_SearchResults_EmailSelectedReceiptAsPDF_059
+    it('should select Email Selected Receipt as PDF from dropdown options', async () => {
+        const emailSelectedInvoice = $$('li.k-item').get(0);
+        await app.waitForEcClickable(emailSelectedInvoice);
+        await emailSelectedInvoice.click();
+        await expect($('input[placeholder="Enter email address(es)"]').isDisplayed()).toBeTruthy();
+        });
+    it('should enter Email details and click on send button', async () => {
+        await browser.sleep(2000);
+        await inv.enterEmail(paysrc.readExcelpaysrc(0, 'B17'));
+        await inv.enterBody(paysrc.readExcelpaysrc(0, 'B18'));
+        const sendButton = $('button.k-button.k-primary.right.col.s2');
+        await app.waitForEcClickable(sendButton);
+        await sendButton.click();
+        await app.waitForMainLoader();
+        browser.sleep(3000);
+        });
+});

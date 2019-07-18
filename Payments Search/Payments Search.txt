@@ -1,0 +1,557 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { Entity } from '../entitySearch/EntitySearch.po';
+import { PaymentSearch } from './paymentSearch.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Payments Search - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let ent: Entity;
+    let paysrc: PaymentSearch;
+    let pay: Payment;
+    const sortasc = $('span.k-icon.k-i-sort-asc-sm');
+    const sortdesc = $('span.k-icon.k-i-sort-desc-sm');
+    beforeAll(async () => {
+        app = new AppPage();
+        ent = new Entity();
+        inv = new Invoices();
+        pay = new Payment ();
+        paysrc = new PaymentSearch();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    // 1038_iRec_PaymentSearch_SearchUsingInvoice#_017
+    it('Should set the context using Invoice# in payment Page', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(null , paysrc.readExcelpaysrc(0, 'B28'));
+        await app.waitForMainLoader();
+        await pay.clickonPaymentTab();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        await browser.sleep(1000);
+        await paysrc.FilterInvoice(paysrc.readExcelpaysrc(0, 'B28'));
+        await browser.sleep(5000);
+        await expect(element(by.xpath('//tr[1]/td[3]/span')).getAttribute('title')).toContain(paysrc.readExcelpaysrc(0, 'B28'));
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    //  1038_iRec_PaymentSearch_SearchSectionLayout_CSC&TCCInternalUser_008
+    it('Should verify the layout of Search section for CSC users', async () => {
+        await expect( element(by.xpath('//label[contains(text(),"Receipt #")]')).getText()).toContain(data.pymnt_Layout.rcpt);
+        await expect( element(by.xpath('//label[contains(text(),"Date Range")]')).getText()).toContain(data.pymnt_Layout.dt_range);
+        await expect( element(by.xpath('//label[contains(text(),"Payment Status")]')).getText()).toContain(data.pymnt_Layout.pymnt_status);
+        await paysrc.clickOnAdvncSrc();
+        await expect( element(by.xpath('//label[contains(text(),"Payment Type")]')).getText()).toContain(data.pymnt_Layout.pymnt_type);
+        await expect( element(by.xpath('//label[contains(text(),"Name on Card or Account")]')).getText()).toContain(data.pymnt_Layout.name);
+        await expect( element(by.xpath('//label[contains(text(),"Credit Card# or Bank A/c#")]')).getText()).toContain(data.pymnt_Layout.CC);
+        await expect( element(by.xpath('//label[contains(text(),"Payment Amount")]')).getText()).toContain(data.pymnt_Layout.pmnt_amnt);
+    });
+    // 1038_iRec_PaymentSearch_OFACStatus_011
+    it('Should verify OFAC Status value is displayed to internal Users ', async () => {
+        await inv.clickgetChangeCustomer();
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await expect( element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+    });
+    // 1038_iRec_PaymentSearch_FieldsUnderCollectorContact_012
+    it('Should Verify the Fields displayed Under Collector Contact in Payment page', async () => {
+        await expect($('strong.contact-text').getText()).toContain(data.customersearchresult.Contact);
+        await expect($('span.csc-tertiary-color-dark-blue-gray').getText()).toContain(data.customersearchresult.Email);
+        // tslint:disable-next-line:max-line-length
+        await expect(element(by.xpath('//span[@class="left-align display-inline-block pl10"]/div')).getText()).toContain(data.customersearchresult.Contact_Num);
+    });
+    // 1038_iRec_PaymentSearch_SpecialBillingIcon_013
+    it('Should verify Summarized Invoicing option is displayed next to customer name', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.linkText(data.customersearchresult.Billing_icon)).isDisplayed()).toBeTruthy();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingReceipt#_015
+    it('Should Search Payments using "Receipt #"', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await paysrc.SearchReceipt(paysrc.readExcelpaysrc(0, 'B11'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        const rcpt = await(element(by.className('left col s7 no-padding truncate')).getText());
+        console.log('Receipt# Selected :: ', rcpt);
+        expect(await rcpt).toBe(paysrc.readExcelpaysrc(0, 'B11'));
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Payments using "Invoice #"', async () => {
+        await browser.executeScript('window.scrollTo(0,200)');
+        await browser.sleep(5000);
+        await paysrc.FilterInvoice(paysrc.readExcelpaysrc(0, 'B12'));
+        const invoice = await(element(by.xpath('//tr[1]/td[3]/span')).getText());
+        console.log('Invoice# Selected :: ', invoice);
+        await expect(invoice).toContain(paysrc.readExcelpaysrc(0, 'B12'));
+        await paysrc.clickOnClearAll();
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    it('should Able to filter by Payment Date', async () => {
+        await browser.executeScript('window.scrollTo(0,200)');
+        await element(by.xpath('//tr[@class="k-filter-row"]/td[3]/input')).clear();
+        await browser.sleep(1000);
+        await browser.refresh();
+        await browser.sleep(2000);
+        const dateText =  await element(by.xpath('//tr[@ng-reflect-logical-row-index="2"]//td[6]/span')).getText();
+        await console.log('Date text is: ', dateText);
+        const invDate = await $('.k-dateinput-wrap .k-input');
+        await invDate.sendKeys(protractor.Key.BACK_SPACE); // robot class action from keyboard, cant be taken from excel
+        await invDate.sendKeys(protractor.Key.BACK_SPACE);
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B19'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B20'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B21'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B22'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B23'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B24'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B25'));
+        await invDate.sendKeys(paysrc.readExcelpaysrc(0, 'B26'));
+        await browser.sleep(3000);
+        expect(await element(by.xpath('//tr[@ng-reflect-logical-row-index="2"]//td[6]/span')).getText()).toContain(dateText);
+        await paysrc.clickOnClearAll();
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentDateRange_016
+    it('Should Search Payments using Payment Date Range', async () => {
+        await browser.sleep(1000);
+        await inv.clickonStartdateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await inv.CalenderStartDate(paysrc.readExcelpaysrc(0, 'B13'));
+        await browser.sleep(1000);
+        await inv.clickonEnddateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await inv.CalenderEndDate(paysrc.readExcelpaysrc(0, 'B14'));
+        await browser.sleep(5000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        await browser.sleep(5000);
+        const paymntdt = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[6]')).getText());
+        console.log('Payment End Date Selected :: ', paymntdt);
+        await browser.executeScript('window.scrollTo(0,0)');
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentStatus_Applied_018
+    it('Should Search Payments by selecting Payment Status as "Applied"', async () => {
+        await paysrc.clickonPaymentStatusDropdown();
+        await browser.sleep(2000);
+        await paysrc.clickonPaymentStatusApplied();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const applied = await element.all(by.className('left applied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Apllied Count :: ', applied);
+        expect(await applied).toEqual(chkbox);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentStatus_Unapplied_019
+    it('Should Search Payments by selecting Payment Status as "Unapplied"', async () => {
+        await paysrc.clickonPaymentStatusDropdown();
+        await browser.sleep(1000);
+        const unapplieddrpdwn = await element(by.xpath('(//li[@class="k-item"])[2]'));
+        await app.waitForEcVisible(unapplieddrpdwn);
+        await paysrc.clickonPaymentStatusUnApplied();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const unapplied = await element.all(by.className('left unapplied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Apllied Count :: ', unapplied);
+        expect(await unapplied).toEqual(chkbox);
+        await paysrc.clickOnClearAll();
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentStatus_PartiallyApplied_020
+    it('Should Search Payments by selecting Payment Status as "Partially applied"', async () => {
+        await paysrc.clickonPaymentStatusDropdown();
+        await browser.sleep(2000);
+        await paysrc.clickonPaymentStatusParApplied();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const papplied = await element.all(by.className('left partapplied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Apllied Count :: ', papplied);
+        expect(await papplied).toEqual(chkbox);
+    });
+    // 1038_iRec_PaymentSearch_SearchUsingPaymentStatus_ALL_021
+    it('Should Search Payments by selecting Payment Status as "ALL"', async () => {
+        await paysrc.clickonPaymentStatusDropdown();
+        await browser.sleep(2000);
+        await paysrc.clickonPaymentStatusAll();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await element.all(by.className('k-checkbox-label')).isDisplayed).toBeTruthy();
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentStatus_Applied_033
+    it('Should Search Payment results by setting Filter Status to "Applied" in Search results heading', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await paysrc.ClickOnAppliedFilter();
+        expect(await $('button.k-state-active').isDisplayed()).toBeTruthy();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const applied = await element.all(by.className('left applied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Apllied Count :: ', applied);
+        expect(await applied).toEqual(chkbox);
+        await paysrc.ClickOnAppliedFilter();
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentStatus_Unapplied_034
+    it('Should Search Payment results by setting Filter Status to "UnApplied" in Search results heading', async () => {
+        await paysrc.ClickOnUnAppliedFilter();
+        expect(await $('button.k-state-active').isDisplayed()).toBeTruthy();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const unapplied = await element.all(by.className('left unapplied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total UnApllied Count :: ', unapplied);
+        expect(await unapplied).toEqual(chkbox);
+        await paysrc.ClickOnUnAppliedFilter();
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentStatus_PartiallyApplied_035
+    it('Should Search Payment results by setting Filter Status to "Partially Applied" in Search results heading', async () => {
+        await paysrc.ClickOnUnPAppliedFilter();
+        expect(await $('button.k-state-active').isDisplayed()).toBeTruthy();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const papplied = await element.all(by.className('left partapplied')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total UnApllied Count :: ', papplied);
+        expect(await papplied).toEqual(chkbox);
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentStatus_ALL_032
+    it('Should Search Payment results by setting Filter Status to "ALL" in Search results heading', async () => {
+        await paysrc.ClickOnALLFilter();
+        expect(await $('button.k-state-active').isDisplayed()).toBeTruthy();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const rcpt = await element.all(by.className('left col s7 no-padding truncate')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Receipt Count :: ', rcpt);
+        expect(await rcpt).toEqual(chkbox);
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentStatus_MultipleStatusrdSelected_036
+    it('Should Search Payment results by selecting multiple payment statuses at the same time from search results heading', async () => {
+        await paysrc.ClickOnAppliedFilter();
+        await browser.sleep(1000);
+        expect(await $('button.k-state-active').isDisplayed).toBeTruthy();
+        await paysrc.ClickOnUnAppliedFilter();
+        expect(await $$('button.k-state-active').count()).toBe(2);
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const rcpt = await element.all(by.className('left col s7 no-padding truncate')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Receipt Count :: ', rcpt);
+        expect(await rcpt).toEqual(chkbox);
+    });
+    // 1038_iRec_PaymentSearch_FilterSearchResultsByPaymentDateRange_037
+    it('Should Search Payments for a specific payment date range in Payment Search results headings', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+		// tslint:disable-next-line:indent
+		expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await paysrc.PymntStartDateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await paysrc.SetPymntStartDateInput(paysrc.readExcelpaysrc(0, 'B13'));
+        await browser.sleep(1000);
+        await paysrc.PymntEndDateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await paysrc.SetpymntEndDateInput(paysrc.readExcelpaysrc(0, 'B14'));
+        const PaymntEndDt = await(element(by.xpath('//tbody[@role="presentation"]/tr[2]/td[6]/span')));
+        await app.waitForEcVisible(PaymntEndDt);
+        const paymntdt = await(element(by.xpath('//tbody[@role="presentation"]/tr[2]/td[6]')).getText());
+        console.log('Payment End Date Selected :: ', paymntdt);
+    });
+    // 1038_iRec_PaymentSearch_SearchResultsHeaders_038
+    it('Should verify the header fields for payment search results display grid.' , async () => {
+        await browser.sleep(3000);
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('(//*[@class="k-header"])[2]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_rcpt);
+        expect(await element(by.xpath('(//*[@class="k-header"])[3]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_inv);
+        expect(await element(by.xpath('(//*[@class="k-header"])[4]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_amt);
+        expect(await element(by.xpath('(//*[@class="k-header"])[5]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_uamt);
+        expect(await element(by.xpath('(//*[@class="k-header"])[6]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_dt);
+        expect(await element(by.xpath('(//*[@class="k-header"])[7]/a')).getText()).toContain(data.pymnt_diplay_grid.p1_type);
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_NumberOfPaymentsPerPage_039
+    it('Should verify default number of Payments displayed per page' , async () => {
+        expect(await $('kendo-pager-info.k-pager-info.k-label').isDisplayed()).toBeTruthy();
+        const chkbox = await element.all(by.className('k-checkbox-label')).count() - 1;
+        const rcpt = await element.all(by.className('left col s7 no-padding truncate')).count();
+        console.log('Total chkbox Count :: ', chkbox);
+        console.log('Total Receipt Count :: ', rcpt);
+        expect(await rcpt).toEqual(chkbox);
+        await inv.ClickNumofInvoiceDiplayed();
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select')).$$('option').count()).toEqual(4);
+        await browser.sleep(1000);
+        expect(await $('a.k-pager-last').isDisplayed()).toBeTruthy();
+        await inv.NavigateLastPage();
+        const Lastpage = $('a.k-link.k-state-selected');
+        await app.waitForEcVisible(Lastpage);
+        await inv.NavigateFirstPage();
+        const Firstpage = $('a.k-link.k-state-selected');
+        await app.waitForEcVisible(Firstpage);
+        expect(await $('a.k-link.k-state-selected').getText()).toContain('1');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_CustomizeNumberOfPaymentsPerPage_040
+    it('Should verify that User is able to customize the no of payments that he wants to see on a single page ' , async () => {
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        await inv.ClickNumofInvoiceDiplayed();
+        expect(await element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select')).$$('option').count()).toEqual(4);
+        await inv.NumofInvoiceDiplayed25();
+        expect(await element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toEqual(25);
+        await inv.ClickNumofInvoiceDiplayed();
+        await inv.NumofInvoiceDiplayed50();
+        expect(await element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toEqual(50);
+        await inv.ClickNumofInvoiceDiplayed();
+        await inv.NumofInvoiceDiplayed75();
+        expect(await element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toEqual(75);
+        await inv.ClickNumofInvoiceDiplayed();
+        await inv.NumofInvoiceDiplayed100();
+        expect(await element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toEqual(100);
+        expect(await $('a.k-pager-last').isDisplayed()).toBeTruthy();
+        await inv.NumofInvoiceDiplayed25();
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_MoreThan1000Payments_042
+    it('Should verify the message displayed to user when customer is having more than 1000  payments' , async () => {
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        await inv.NumofInvoiceDiplayed25();
+        expect(await element(by.xpath('//tbody[@role="presentation"]')).$$('tr').count()).toEqual(25);
+        expect(await $('kendo-pager-info.k-pager-info').getText()).toContain(data.customersearchresult.kpagerinfo25);
+        await inv.Navigate2ndPage();
+        expect(await $('kendo-pager-info.k-pager-info').getText()).toContain(data.customersearchresult.kpagerinfo50);
+        await inv.Navigate3rdPage();
+        expect(await $('kendo-pager-info.k-pager-info').getText()).toContain(data.customersearchresult.kpagerinfo75);
+    });
+    // [1]1038_iRec_PaymentSearch_SearchResults_MultipleInvoicesApplyToSingleReceipt_055
+    it('Should Verify Payment Search Results of Muliple Receipts in Single Invoice' , async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await paysrc.SearchReceipt(paysrc.readExcelpaysrc(0, 'B15'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('[title="Multiple"] a').getText()).toContain(data.customersearchmultrcpt.h1_multi);
+        expect(await $('span.k-icon.k-i-plus-circle.cursor-pointer').isDisplayed()).toBeTruthy();
+        await browser.executeScript('window.scrollTo(0,2000)');
+        await browser.sleep(2000);
+        await inv.ClickMultipleReceiptCursor();
+        expect(await $('span.k-icon.k-i-minus-circle').isDisplayed()).toBeTruthy();
+        await paysrc.ClickOnMultiplePaymentReceipt();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('//div[@class="row center"]/strong[1]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_inv);
+        expect(await element(by.xpath('//div[@class="row center"]/strong[2]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_oamt);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt ID")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_rcpt_id);
+        expect(await element(by.xpath('//span[contains(text(),"CM/Adj#")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_cm);
+        expect(await element(by.xpath('//span[contains(text(),"Paid By")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_paid);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[contains(text(),"Amount Applied")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_applied);
+        expect(await element(by.xpath('(//span[@class="col s2"])[3]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_dt);
+        expect(await $$('div.right-align').get(1).getText()).toContain(data.pymntsearchmultrcpt.pm1_rbal);
+        await inv.ClickOnMultipleReceiptCloseBtn();
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_SelectAllPaymentsCheckbox_056
+    // tslint:disable-next-line:max-line-length
+    it('Should verify that all Payments displayed on a particular page, are selected when user clicks on "Select All Checkbox" at the header' , async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await inv.ClickOnSelectAllCheckbox();
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_Select&UnselectUsingCheckbox_057
+    // tslint:disable-next-line:max-line-length
+    it('Should verify that from search results user is able to select and unselect payment by clicking on respective checkbox' , async () => {
+        await inv.ClickOnSelectAllCheckbox();
+        await inv.ClickOnSelectInvoiceCheckbox();
+        await browser.sleep(2000);
+        await inv.ClickOnSelectInvoiceCheckbox();
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_ClickWindowOnClickingReceipt#_054
+    it('Should Verify number of invoices applied to that particular receipt by clicking on Receipt#' , async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await paysrc.SearchReceipt(paysrc.readExcelpaysrc(0, 'B16'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(2000);
+        const rcpt = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[2]'));
+        await browser.executeScript('window.scrollTo(0,200)');
+        await paysrc.ClickOnParticularReceipt();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('//div[@class="row center"]/strong[1]')).getText()).toContain(data.pymntsearchrcpt.rcpt);
+        expect(await element(by.xpath('//div[@class="row center"]/strong[2]')).getText()).toContain(data.pymntsearchrcpt.ptype);
+        expect(await element(by.xpath('//div[@class="row center"]/strong[3]')).getText()).toContain(data.pymntsearchrcpt.rcpt_amt);
+        expect(await element(by.xpath('//span[contains(text(),"Applied to Invoice #")]')).getText()).toContain(data.pymntsearchrcpt.ainv);
+        expect(await element(by.xpath('//span[contains(text(),"Date Applied")]')).getText()).toContain(data.pymntsearchrcpt.dtapplied);
+        expect(await element(by.xpath('//span[contains(text(),"Amount Applied")]')).getText()).toContain(data.pymntsearchrcpt.amtapplied);
+        expect(await $$('div.right-align').get(1).getText()).toContain(data.pymntsearchrcpt.uamt);
+        await inv.ClickOnMultipleReceiptCloseBtn();
+        await browser.sleep(3000);
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_ClickWindowOnClickingInvoice#_053
+    it('Should Verify User is able to view the receipt applied to that particular invoice by clicking on Invoice#' , async () => {
+        const inv1 = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[3]'));
+        await app.waitForEcClickable(inv1);
+        await paysrc.ClickOnParticularInvoice();
+        await app.waitForMainLoader();
+        expect(await element(by.xpath('//div[@class="row center"]/strong[1]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_inv);
+        expect(await element(by.xpath('//div[@class="row center"]/strong[2]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_oamt);
+        expect(await element(by.xpath('//span[contains(text(),"Receipt ID")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_rcpt_id);
+        expect(await element(by.xpath('//span[contains(text(),"CM/Adj#")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_cm);
+        expect(await element(by.xpath('//span[contains(text(),"Paid By")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_paid);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[contains(text(),"Amount Applied")]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_applied);
+        expect(await element(by.xpath('(//span[@class="col s2"])[3]')).getText()).toContain(data.pymntsearchmultrcpt.pm1_dt);
+        expect(await $$('div.right-align').get(1).getText()).toContain(data.pymntsearchmultrcpt.pm1_rbal);
+        await inv.ClickOnMultipleReceiptCloseBtn();
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    // 1038_iRec_PaymentSearch_SearchResults_PageNumbers_041
+    // 1038_iRec_PaymentSearch_SearchResults_SelectPaymentsAcrossMultiplePages_058
+    it('Should Verify user is able to select payments across multiple pages' , async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.customersearchresult.Email);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const activepage = $('a.k-link.k-state-selected');
+        await app.waitForEcVisible(activepage);
+        expect(await $('kendo-pager-info.k-pager-info.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('a.k-link.k-state-selected').getText()).toContain('1');
+        const rcpt = await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[2]/div/span[2]'));
+        await app.waitForEcVisible(rcpt);
+        await paysrc.ClickOnParticularReceipt();
+        await app.waitForMainLoader();
+        expect(await $('div.k-window-title.k-dialog-title').isDisplayed()).toBeTruthy();
+        await inv.ClickOnMultipleReceiptCloseBtn();
+        await inv.Navigate2ndPage();
+        await app.waitForEcVisible(activepage);
+        expect(await $('kendo-pager-info.k-pager-info.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('a.k-link.k-state-selected').getText()).toContain('2');
+        await app.waitForEcVisible(rcpt);
+        await paysrc.ClickOnParticularReceipt();
+        await app.waitForMainLoader();
+        expect(await $('div.k-window-title.k-dialog-title').isDisplayed()).toBeTruthy();
+        await inv.ClickOnMultipleReceiptCloseBtn();
+        await inv.Navigate3rdPage();
+        await app.waitForEcVisible(activepage);
+        expect(await $('kendo-pager-info.k-pager-info.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('a.k-link.k-state-selected').getText()).toContain('3');
+        await app.waitForEcVisible(rcpt);
+        await paysrc.ClickOnParticularReceipt();
+        await app.waitForMainLoader();
+        expect(await $('div.k-window-title.k-dialog-title').isDisplayed()).toBeTruthy();
+        await inv.ClickOnMultipleReceiptCloseBtn();
+    });
+});

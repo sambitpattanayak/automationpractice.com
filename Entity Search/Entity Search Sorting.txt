@@ -1,0 +1,178 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+import { Entity } from './EntitySearch.po';
+import { Invoices } from '../invoices/invoices.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Entity Page: Entity Search Sorting- ', () => {
+    let app: AppPage;
+    let ent: Entity;
+    let inv: Invoices;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        ent = new Entity();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+    });
+
+    it('should change customer', async () => {
+        // open for single spec execution
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect( $('app-change-customer').isDisplayed()).toBeTruthy();
+        await $('#customer-id-dialog-input').sendKeys(ent.readExcelEntity(2, 'B2'));
+        const EC = browser.ExpectedConditions;
+        browser.wait(EC.elementToBeClickable($('#set-customer-button')), 30000);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(ent.readExcelEntity(2, 'B2'));
+    });
+
+    // Able to select the Entity Search in the header menu.
+    it('should Click on Entity Search and verify Entity Search tab is open', async () => {
+        const linkEntity = element(by.linkText('ENTITY SEARCH'));
+        await app.waitForEcClickable(linkEntity);
+        await ent.clickonEntitySearchTab();
+        await app.waitForMainLoader();
+        expect(await  browser.getCurrentUrl()).toContain(data.EntitySearch.EntityLink);
+        expect(await $('.tabselected').getText()).toBe(data.EntitySearch.EntitySearch);
+    });
+
+    // Able to search Entity by number or Don't know Entity# link.
+    // Able to see Entity information.
+    it('should search Entity by Entity No and verify the required field', async () => {
+        const entitySearch = await $('[placeholder="Entity#"]');
+        await app.waitForEcVisible(entitySearch);
+        await ent.SearchEntity();
+        const searchButton = await element(by.buttonText('Search'));
+        await app.waitForEcClickable(searchButton);
+        await ent.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,2000)');
+        const EntityResult = await $$('a.k-link').get(0);
+        await app.waitForEcVisible(EntityResult);
+        await expect((EntityResult).isDisplayed()).toBeTruthy();
+        expect(await $$('a.k-link').get(0).getText()).toBe(data.EntitySearch.CustName);
+        expect(await $$('a.k-link').get(1).getText()).toBe(data.EntitySearch.CustID);
+        expect(await $$('a.k-link').get(2).getText()).toBe(data.EntitySearch.Invoice);
+        expect(await $$('a.k-link').get(3).getText()).toBe(data.EntitySearch.RecptNo);
+        expect(await $$('a.k-link').get(4).getText()).toBe(data.EntitySearch.InvAmt);
+        expect(await $$('a.k-link').get(5).getText()).toBe(data.EntitySearch.AmtDue);
+        expect(await $$('a.k-link').get(6).getText()).toBe(data.EntitySearch.InvDate);
+        expect(await $$('a.k-link').get(7).getText()).toBe(data.EntitySearch.ContactName);
+        expect(await $$('a.k-link').get(8).getText()).toBe(data.EntitySearch.Order);
+        expect(await $$('a.k-link').get(9).getText()).toBe(data.EntitySearch.Subject);
+        expect(await $$('a.k-link').get(10).getText()).toBe(data.EntitySearch.Matter);
+    });
+
+    // Able to see the results for selected Entity
+    // Able to see all the required fields
+    it('should Able to see the results for selected Entity', async () => {
+        const entityResult = element(by.className('k-pager-info k-label'));
+        await app.waitForEcVisible(entityResult);
+        expect((entityResult).isDisplayed()).toBeTruthy();
+        await browser.sleep(1000);
+    });
+
+    // Able to sort search results by Customer Name
+    it('should Able to sort search results by Customer Name', async () => {
+        await browser.sleep(2000);
+        await ent.SortCustomerName();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortCustomerName();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+        await browser.sleep(1000);
+    });
+
+    // Able to sort search results by Customer ID
+    it('should Able to sort search results by Customer ID', async () => {
+        await ent.SortCustomerID();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortCustomerID();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by Invoice#
+    it('should Able to sort search results by Invoice#', async () => {
+        await ent.SortInvoice();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortInvoice();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by RECEIPT NUMBER
+    it('should Able to sort search results by Receipt Number', async () => {
+        await ent.SortReceiptNo();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortReceiptNo();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by INVOICE AMOUNT
+    it('should Able to sort search results by Invoice Amount', async () => {
+        await ent.SortInvAmt();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortInvAmt();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by AMOUNT DUE
+    it('should Able to sort search results by AMOUNT DUE', async () => {
+        await ent.SortAmtDue();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortAmtDue();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by INVOICE DATE
+    it('should Able to sort search results by Invoice Date', async () => {
+        await ent.SortInvDate();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortInvDate();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by CONTACT NAME
+    it('should Able to sort search results by Contact Name', async () => {
+        await ent.SortContactName();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortContactName();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by ORDER#
+    it('should Able to sort search results by Order#', async () => {
+        await ent.SortOrder();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortOrder();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by SUBJECT
+    it('should Able to sort search results by SUBJECT', async () => {
+        await ent.SortSubject();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortSubject();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+    // Able to sort search results by Matter
+    it('should Able to sort search results by Matter', async () => {
+        await ent.SortMatter();
+        expect(await $('span.k-icon.k-i-sort-asc-sm').isPresent()).toBeTruthy();
+        await ent.SortMatter();
+        expect(await $('span.k-icon.k-i-sort-desc-sm').isPresent()).toBeTruthy();
+    });
+
+});

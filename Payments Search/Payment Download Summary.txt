@@ -1,0 +1,155 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from '../invoices/invoices.po';
+import { Payment } from '../make-payment/make-a-payment.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Payments Page : Download Summary - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let pay: Payment;
+
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        pay = new Payment ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('PAYMENTS'));
+        await app.waitForEcClickable(linkPayment);
+        await pay.clickonPaymentTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should click and verify New Search', async () => {
+        const changeCust = $('#change-customer-link1');
+        await app.waitForEcVisible(changeCust);
+        await app.waitForEcClickable(changeCust);
+        await browser.sleep(3000); // needed as taking more time to load
+        await changeCust.click();
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+      });
+
+    it('should set Customer Number in the search Bar', async () => {
+        await $('[placeholder="Customer ID"]').sendKeys(data.customerdetails.ID_internal_default);
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        // tslint:disable-next-line:max-line-length
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain(data.payments.clientEmail);
+        await inv.validateCorrectCustomerNumberSearchResult();
+       });
+
+    it('should click on search button', async () => {
+        await inv.clickSearchButton();
+        await browser.sleep(4000);
+        await app.waitForMainLoader();
+       });
+
+    it('should select Download Grid Results from dropdown EXPORT GRID OPTIONS', async () => {
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        const DownloadGrid = $$('li.k-item').get(0);
+        await app.waitForEcClickable(DownloadGrid);
+        await inv.selectDownloadGridResults();
+        await app.waitForMainLoader();
+       });
+
+    it('should select No from Please confirm pop-up', async () => {
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        await expect($('div.k-widget').isDisplayed()).toBeTruthy();
+        const NoButton = $$('button.k-button').get(7);
+        await app.waitForEcClickable(NoButton);
+        await NoButton.click();
+        await browser.sleep(2000);  // wait for download the file
+       });
+
+    it('should select Download Grid Results from dropdown EXPORT GRID OPTIONS', async () => {
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        const DownloadGrid = $$('li.k-item').get(0);
+        await app.waitForEcClickable(DownloadGrid);
+        await inv.selectDownloadGridResults();
+        await app.waitForMainLoader();
+       });
+
+    it('should select Yes from Please confirm pop-up', async () => {
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect( $('div.k-widget').isDisplayed()).toBeTruthy();
+        const yesPopup = $$('button.k-button').get(6);
+        await app.waitForEcClickable(yesPopup);
+        await $$('button.k-button').get(6).click();
+        const selectRemove = $$('div.custom-box-div').get(2);
+        await app.waitForEcClickable(selectRemove);
+        await $$('div.custom-box-div').get(2).click();
+        const EC = browser.ExpectedConditions;
+        const exportButton = element(by.className('k-button k-primary right mt10'));
+        await browser.wait(EC.elementToBeClickable(exportButton), 30000);
+        await(element(by.className('k-button k-primary right mt10')).click());
+        await browser.sleep(3000); // wait to download file
+       });
+
+    it('should select Download Selected Payment Details Grid from dropdown EXPORT GRID OPTIONS', async () => {
+        await browser.sleep(3000); // used js in next step to click on checkbox so it need pause
+        await inv.selectInvoice();
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        const DownloadselectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(DownloadselectedInvoice);
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+
+       });
+
+    it('should select No from Please confirm pop-up', async () => {
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect( $('div.k-widget').isDisplayed()).toBeTruthy();
+        const NoButton = $$('button.k-button').get(7);
+        await app.waitForEcClickable(NoButton);
+        await NoButton.click();
+        await browser.sleep(2000); // wait for file to download
+       });
+
+    it('should select Download Selected Payment Grid Details from dropdown EXPORT GRID OPTIONS', async () => {
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        // tslint:disable-next-line:max-line-length
+        await browser.sleep(1000); // Needed for click dropdown element, action has more faster it wont allow to present dropdown to be active
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+       });
+
+    it('should select Yes from Please confirm pop-up', async () => {
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect( $('div.k-widget').isDisplayed()).toBeTruthy();
+        const yesButton = $$('button.k-button').get(6);
+        await app.waitForEcClickable(yesButton);
+        await $$('button.k-button').get(6).click();
+        const selectRemove = $$('div.custom-box-div').get(2);
+        await app.waitForEcClickable(selectRemove);
+        await $$('div.custom-box-div').get(2).click();
+        const EC = browser.ExpectedConditions;
+        const exportButton = element(by.className('k-button k-primary right mt10'));
+        await browser.wait(EC.elementToBeClickable(exportButton), 30000);
+        await(element(by.className('k-button k-primary right mt10')).click());
+        await browser.sleep(3000);  // wait to download file
+       });
+
+});

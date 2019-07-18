@@ -1,0 +1,96 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { DemoPage } from './demo.po';
+describe('Protractor Demo: ', () => {
+    let demo: DemoPage;
+    demo = new DemoPage();
+    beforeAll(async () => {
+        await browser.manage().window().maximize();
+        await browser.waitForAngularEnabled(true) ;
+        await console.log('\n********************************************');
+        await console.log('Browser Opened');
+    });
+
+    it('should launch application.', async () => {
+        await demo.launchapp(); // function is defined in demo.po.ts page (hover mouse on this function(launchapp()) & 'ctrl+click' to go to this function)
+    });
+
+    it('should verify that application is launched.', async () => {
+        const title = await browser.getTitle(); // stores browser title in a variable
+        // console.log ('Browser title :', title);
+        expect(title).toBe('Super Calculator'); // verification 1
+        const staticText1 = await element(by.css('h3')).getText(); // locating & assigning elements to variable
+        expect(staticText1).toBe('Super Calculator'); // verfication 2
+    });
+
+    it('should perform addition', async () => {
+        await element(by.model('first')).sendKeys('5'); // action 1, type in 1st text box
+        await browser.sleep(3000);
+        await element(by.model('second')).sendKeys('10'); // action 2, type in 2nd text box
+        await $('#gobutton').click(); // action 3, clicks on Go! button
+        await browser.sleep(1000); // wait for 1 second after clicking on Go! button for loading to complete
+        const result = await $('h2').getText(); // stores displayed result in one variable
+        const gridResult = await element(by.xpath('//tr[1]//td[3]')).getText(); // stores displayed result in data grid in another variable
+        expect(result).toBe(gridResult); // compare values of both variables to be same
+        await browser.sleep(3000); // wait for 3 seconds before executing next line
+    });
+
+    it('should perform subtraction', async () => {
+        await element(by.model('first')).sendKeys('10');
+        await browser.sleep(3000);
+        await element(by.model('second')).sendKeys('3');
+        await element(by.model('operator')).click(); // clicks on dropdown
+        await browser.sleep(1000);
+        await $('[value="SUBTRACTION"]').click(); // selects minus(-) symbol
+        await $('#gobutton').click();
+        await browser.sleep(1000);
+        const result = await $('h2').getText();
+        const gridResult = await element(by.xpath('//tr[1]//td[3]')).getText();
+        expect(result).toBe(gridResult);
+        await browser.sleep(3000);
+    });
+
+    it('should perform multiplication', async () => {
+        await element(by.model('first')).sendKeys('10');
+        await browser.sleep(3000);
+        await element(by.model('second')).sendKeys('3');
+        await element(by.model('operator')).click();
+        await browser.sleep(1000);
+        await $('[value="MULTIPLICATION"]').click(); // selects multiplication(*) symbol
+        await $('#gobutton').click();
+        await browser.sleep(1000);
+        const result = await $('h2').getText();
+        const gridResult = await element(by.xpath('//tr[1]//td[3]')).getText();
+        expect(result).toBe(gridResult);
+        await browser.sleep(3000);
+    });
+
+    it('should perform division', async () => {
+        await element(by.model('first')).sendKeys('10');
+        await browser.sleep(3000);
+        await element(by.model('second')).sendKeys('3');
+        await element(by.model('operator')).click();
+        await browser.sleep(1000);
+        await $('[value="DIVISION"]').click(); // selects division(/) symbol
+        await $('#gobutton').click();
+        await browser.sleep(1000);
+        const result = await $('h2').getText();
+        const gridResult = await element(by.xpath('//tr[1]//td[3]')).getText();
+        expect(result).toBe(gridResult);
+        await browser.sleep(3000);
+    });
+
+    it('should perform modulo operation', async () => {
+        await element(by.model('first')).sendKeys('20');
+        await browser.sleep(3000);
+        await element(by.model('second')).sendKeys('200');
+        await element(by.model('operator')).click();
+        await browser.sleep(1000);
+        await $('[value="MODULO"]').click(); // selects modulo(%) symbol
+        await $('#gobutton').click();
+        await browser.sleep(1000);
+        const result = await $('h2').getText();
+        const gridResult = await element(by.xpath('//tr[1]//td[3]')).getText();
+        expect(result).toBe(gridResult);
+        await browser.sleep(3000);
+    });
+});

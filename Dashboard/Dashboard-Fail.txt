@@ -1,0 +1,27 @@
+import { browser, $ } from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Dashboard Page:without customer', () => {
+    let app: AppPage;
+    beforeAll(async () => {
+        app = new AppPage();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+
+    it('should have dashboard 0 size', async () => {
+        const size = await $('app-dashboard').getSize();
+        expect(size['height']).toEqual(0);
+        expect(size['width']).toEqual(0);
+    });
+
+});

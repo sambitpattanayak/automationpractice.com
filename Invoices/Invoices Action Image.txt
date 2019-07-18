@@ -1,0 +1,64 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page : Action_image - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+     });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+        });
+
+    it('should click and verify CHANGE CUSTOMER', async () => {
+        await inv.clickonInvoiceTab();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+      });
+    it('should set Customer Number in the search Bar', async () => {
+        await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B2'));
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect ($('#collectorInfo-accName-accNumber').getText()).toContain(inv.readExcelInv(1, 'B2'));
+       });
+    it('should click on search button', async () => {
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+       });
+        // 1039_iRec_InvoiceActions_Ability to print multiple invocies combiantion of both Renewal(from EBS) and Trnsactional (from documentum)_005
+        // 1039_iRec_InvoiceActions_Ability to print multiple Renewal  invoices only _006
+        // 1039_iRec_InvoiceActions_Ability to print multiple Trnsactional invocies only_007
+        // Ability to select the invoices from the list of invoices
+    it('should select Invoice and click on Invoice options Dropdown', async () => {
+        await browser.sleep(2000);  // used js in next step to click on checkbox so it required pause
+        await inv.selectInvoiceAll();
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        await browser.sleep(3000); // needed as taking more time to load
+        await expect(($$('li.k-item').get(1)).isDisplayed()).toBeTruthy();
+       });
+
+    it('should select Print Selected Invoices as PDF from dropdown options', async () => {
+        const PrintSelectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(PrintSelectedInvoice);
+        await PrintSelectedInvoice.click();
+        await expect($('#iRec-brand-logo').getText()).toBe(data.invoice.InvoiceLogoText);
+       });
+
+});

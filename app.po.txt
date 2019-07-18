@@ -1,0 +1,298 @@
+import { browser, by, element, $, $$ } from 'protractor';
+export class AppPage {
+  /**
+   * @name appLogin
+   * @description Function login's into Dev
+   * @returns promise
+   */
+  async appLogin(env: string, isExternal?: boolean) {
+    let linkTextiRec = 'Invoice and Payments (New)';
+    browser.ignoreSynchronization = true;
+    await browser.manage().window().maximize();
+
+    if (env === 'DEV' && !isExternal) { // DEV + INTERNAL USER
+      browser.driver.get(await this.readExcel(0, 'B2'));
+      await this.waitForUrlToChangeTo('login.pwd');
+      await browser.driver.findElement(by.id('user-name')).sendKeys(this.readExcel(1, 'A3'));
+      await browser.driver.findElement(by.id('password')).sendKeys(this.readExcel(1, 'B3'));
+      linkTextiRec = 'Invoice and Payments (New)';
+    } else if (env === 'QA' && !isExternal) { // QA + INTERNAL USER
+      browser.driver.get(await this.readExcel(0, 'B3'));
+      await this.waitForUrlToChangeTo('login.pwd');
+      await browser.driver.findElement(by.id('user-name')).sendKeys(this.readExcel(1, 'A7'));
+      await browser.driver.findElement(by.id('password')).sendKeys(this.readExcel(1, 'B7'));
+      linkTextiRec = 'Invoice and Payments (New)';
+    } else if (env === 'DEV' && isExternal) { // DEV + EXTERNAL USER
+      browser.driver.get(await this.readExcel(0, 'B2'));
+      await this.waitForUrlToChangeTo('login.pwd');
+      await browser.driver.findElement(by.id('user-name')).sendKeys(this.readExcel(1, 'A4'));
+      await browser.driver.findElement(by.id('password')).sendKeys(this.readExcel(1, 'B4'));
+      linkTextiRec = 'Invoices & Payments';
+    }else if (env === 'QA' && isExternal) { // QA + EXTERNAL USER
+      browser.driver.get(await this.readExcel(0, 'B3'));
+      await this.waitForUrlToChangeTo('login.pwd');
+      await browser.driver.findElement(by.id('user-name')).sendKeys(this.readExcel(1, 'A9'));
+      await browser.driver.findElement(by.id('password')).sendKeys(this.readExcel(1, 'B9'));
+      await browser.driver.findElement(by.id('submit')).click();
+      await browser.driver.sleep(2000);
+      await element(by.xpath('//a[@href="/cscirec/irecinterface"]')).click();
+      return browser.driver.getCurrentUrl();
+    }
+      await browser.driver.findElement(by.id('submit')).click();
+      await browser.driver.sleep(2000);
+      await browser.driver.sleep(2000);
+      await browser.driver.findElement(by.linkText(linkTextiRec)).click();
+      await browser.driver.sleep(2000);
+      return browser.driver.getCurrentUrl();
+  }
+
+  /**
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async navigateTo(isExternal?: boolean) {
+    console.log('inside the navigate to function');
+    console.log('tokens:3:', browser.params.tokens);
+    const data = require('./app.e2e-test_data.json');
+    const testEnv = data.envs.Development;
+    if (!browser.params.tokens) {
+      const baseURL = await this.appLogin(testEnv);
+      console.log(baseURL);
+      console.log('tokens:4:', baseURL.split('?')[1]);
+      browser.params.tokens = baseURL.split('?')[1];
+    }
+    return browser.get('/?' + browser.params.tokens);
+  }
+
+  /**
+   * @returns data read from excel. First install : 'npm install xlsx'
+   */
+  readExcel(sheetIndex: number, cellnumber: string) {
+    const XLSX = require('xlsx');
+    const workbook = XLSX.readFile('e2e/testdataCommon.xlsx');
+    const sheetindex = workbook.SheetNames[sheetIndex];
+    const worksheet = workbook.Sheets[sheetindex];
+    const readValue = worksheet[cellnumber];
+    const desired_value = (readValue ? readValue.v : undefined);
+    return desired_value;
+  }
+
+
+  getAppTitle() {
+    return browser.getTitle();
+  }
+
+  getAppLogout() {
+    return element(by.linkText('Logout'));
+  }
+
+  /**
+   * @name waitForMainLoader
+   * @description wait for webservice to complete
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async waitForMainLoader() {
+    const EC = browser.ExpectedConditions;
+    const visible = EC.visibilityOf($('.loader-wrapper'));
+    const inVisible = EC.invisibilityOf($('.loader-wrapper'));
+    try {
+      await browser.wait(visible, 3000);
+    }catch (e) {
+
+    }
+    return browser.wait(inVisible, 120000, 'Test failed as main loader spinning time crossed 2 minutes');
+  }
+
+  /**
+   * @name setCustomerOrInvoice
+   * @description New Search component is used to set customer/invoice.
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async setCustomerOrInvoice(customerNumber?: string, inoviceNumber?: string) {
+      await browser.sleep(1000);
+      // if (!customerNumber && !inoviceNumber) {
+      //   customerNumber = await this.readExcel(2, 'B2');
+      if (customerNumber) {
+        await $('#customer-id-dialog-input').sendKeys(customerNumber);
+      } else {
+        await $('#invoice-dialog-input').sendKeys(inoviceNumber);
+      }
+      await browser.sleep(2000);
+      await $('#set-customer-button').click();
+    // }
+  }
+
+  /**\
+   * @name cancelCustomerOrInvoice
+   * @description it will cancel the dialog box, used for customer or invoice.
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async cancelCustomerOrInvoice() {
+    return browser.sleep(1000).then(() => $('a.k-button.k-bare.k-button-icon.k-window-action.k-dialog-action.k-dialog-close').click());
+  }
+
+  /**
+   * @name waitForUrlToChangeTo
+   * @description Wait until the URL changes to new URl or specific URL
+   * @argument string
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  waitForUrlToChangeTo(specificURL?: string) {
+  let currentUrl;
+
+
+  return browser.getCurrentUrl()
+                .then( url => {currentUrl = specificURL || url;
+                })
+                .then(() => browser.wait( () => browser.getCurrentUrl().then(newURL => {
+                  const test: boolean = specificURL ?  newURL.indexOf(currentUrl) >= 0 : newURL !== currentUrl ;
+                  if (test) {
+                    return newURL;
+                  }
+                  return test;
+                } )));
+
+  }
+/**
+   * @name logout
+   * @description It will logout from the application
+   * @returns Element
+   */
+  async appLogout() {
+    await browser.actions().mouseMove($('[data-target]')).perform(); // mouse hover
+    await browser.sleep(1000);
+    expect(await $('#accountMenuInner').isDisplayed()).toBeTruthy();
+    expect(await this.getAppLogout().isDisplayed()).toBeTruthy();
+    await $('[data-function]').click(); // clicks Logout
+    await browser.sleep(2000);
+    expect(await browser.getCurrentUrl()).toContain('logout.pwd');
+    await browser.sleep(2000);
+  }
+    /**
+   * @name clickChangeCustomerLink
+   * @description It will find 'New Search' link
+   * @returns Element
+   */
+  getChangeCustomer() {
+    return element(by.linkText('NEW SEARCH'));
+  }
+
+/**
+   * @name clickGOonChangeCustomerPopUp
+   * @description It will find 'Go Button' on the New Search Pop Up
+   * @returns Element
+   */
+  buttonGoChangeCustomerPopUp() {
+    return element(by.id('set-customer-button'));
+  }
+/**
+   * @name errorMessageCloseButton
+   * @description It will click on close button of error message
+   * @returns Element
+   */
+  errorMessageCloseButton() {
+    return $('span.c-i-cancel_1.text-xl.cursor-pointer.right.cross-icon');
+    }
+
+    /**
+   * @name clickDon'tKnowIDonChangeCustomerPopUp
+   * @description It will find 'Don't Know ID' link on the New Search Pop Up
+   * @returns Element
+   */
+  donotKnowIDChangeCustomerPopUp() {
+    // tslint:disable-next-line:quotemark
+    return element(by.linkText("Don't Know ID?"));
+  }
+
+   /**\
+   * @name cancelSearchByCustomer
+   * @description it will cancel the dialog box, used for search by customer.
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async cancelSearchByCustomer() {
+    // tslint:disable-next-line:max-line-length
+    return browser.sleep(1000).then(() => element.all(by.className('k-button k-bare k-button-icon k-window-action k-dialog-action k-dialog-close')).get(1).click());
+      }
+
+      /**
+   * @name clickonSearchButtononSearchByCustomerPopup
+   * @description It will find 'Search Button' on the Search By Customer Pop Up
+   * @returns Element
+   */
+  searchButton() {
+    return element.all(by.className('k-button k-primary right')).get(1);
+  }
+
+  /**\
+   * @name validateSearchByCustomerNoResult
+   * @description it will validate the No Result error message, used for search by customer.
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async validateSearchByCustomerNoResult() {
+    const data = require('./app.e2e-test_data.json');
+    await this.searchButton().click();
+    await this.waitForMainLoader();
+    const errorMessage = await element(by.xpath('//div[contains(text(),"No results found")]')).getText();
+    expect(await errorMessage).toBe(data.changeCustomer.static_text7);
+  }
+
+  /**\
+   * @name validateCorrectCustomerNameSearchResult
+   * @description it will validate Correct Customer Name Search Result.
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async validateCorrectCustomerNameSearchResult() {
+    const data = require('./app.e2e-test_data.json');
+    await browser.sleep(3000);
+    expect(await element(by.xpath('//span[contains(text(),"results found")]')).getText()).toContain(data.changeCustomer.static_text8);
+    expect(await $$('h3').get(1).getText()).toContain(data.changeCustomer.static_text9);
+    expect(await element(by.xpath('//h3[contains(text(),"Customer#")]')).getText()).toContain(data.changeCustomer.static_text10);
+    expect(await element(by.xpath('//h3[contains(text(),"Customer Address")]')).getText()).toContain(data.changeCustomer.static_text11);
+    expect(await element(by.xpath('//button[contains(text(),"SELECT")]')).getText()).toContain(data.changeCustomer.static_text12);
+    const CustomerID = await $('[for="CUSTOMER_NUMBER_0"] .s2').getText();
+    await $('[for="CUSTOMER_NUMBER_0"] .s2').click();
+    await element(by.xpath('//button[contains(text(),"SELECT")]')).click();
+    await $('#invoice-dialog-input').clear();
+    // tslint:disable-next-line:quotemark
+    await $('#invoice-dialog-input').sendKeys(" ");
+    expect(await $('#customer-id-dialog-input').getAttribute('ng-reflect-model')).toBe(CustomerID);
+  }
+  /**
+   * @name clickOnCustInputResult
+   * @description Click on custmer input seacrh result
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async clickOnCustInputResult() {
+    const ele = await $('[for="CUSTOMER_NUMBER_0"] .s2');
+    return browser.executeScript('arguments[0].click()', ele);
+  }
+  /**
+   * @name clickOnCustInputResultSelectBtn
+   * @description Click on custmer input seacrh result
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async clickOnCustInputResultSelectBtn() {
+    const ele = await element(by.xpath('//button[contains(text(),"SELECT")]')).click();
+    return browser.executeScript('arguments[0].click()', ele);
+  }
+
+  /**
+   * @name waitForEcClickable
+   * @description wait for element to be clickable
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async waitForEcClickable(locator) {
+    const EC = await browser.ExpectedConditions;
+    return browser.wait(EC.elementToBeClickable(locator), 50000);
+  }
+
+  /**
+   * @name waitForEcVisible
+   * @description wait for element to be visible
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async waitForEcVisible(locator) {
+    const EC = await browser.ExpectedConditions;
+    return browser.wait(EC.visibilityOf(locator), 50000);
+  }
+}
+

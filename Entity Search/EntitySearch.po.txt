@@ -1,0 +1,469 @@
+import { browser, by, element, $, $$ } from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+
+export class Entity {
+  /**
+   * @name clickonEntitySearchTab
+   * @description It will click on Invoice Tab
+   * @returns Promise
+   */
+  async clickonEntitySearchTab() {
+    return element(by.linkText('ENTITY SEARCH')).click();
+  }
+
+  /**
+   * @name SearchEntity
+   * @description It will Search Entity using Entity Number
+   * @returns Promise
+  */
+   async SearchEntity() {
+        await $('[placeholder="Entity#"]').clear();
+        await $('[placeholder="Entity#"]').sendKeys(this.readExcelEntity(2, 'B3'));
+      }
+
+      /**
+   * @name SearchEntity
+   * @description It will Search Entity using Entity Number
+   * @returns Promise
+  */
+   async SearchEntityforMultiple() {
+    $('[placeholder="Entity#"]').clear();
+    $('[placeholder="Entity#"]').sendKeys(this.readExcelEntity(2, 'B21'));
+  }
+
+      /**
+   * @name clickSearchButton
+   * @description It will click on Search Button
+   * @returns Promise
+   */
+  async clickSearchButton() {
+    return element(by.buttonText('Search')).click();
+  }
+
+  /**
+   * @name dontKnowEntity
+   * @description It will click on dont know Entity link
+   * @returns Promise
+  */
+   async dontKnowEntity() {
+    return $('#entity-dontKnow').click();
+  }
+
+  /**
+   * @name searchEntityName
+   * @description It will Search Entity using Entity Name
+   * @returns Promise
+  */
+   async searchEntityName() {
+     await browser.sleep(2000);
+    $('[placeholder="Type the Entity name"]').sendKeys(this.readExcelEntity(2, 'B7'));
+  }
+
+  /**
+   * @name clickSelectButton
+   * @description It will click on Select Button
+   * @returns Promise
+   */
+  async clickSelectButton() {
+    return element(by.buttonText('SELECT')).click();
+  }
+
+  /**
+   * @name selectEntity
+   * @description It will select Entity from popup
+   * @returns Promise
+   */
+  async selectEntity() {
+    return await browser.executeScript('document.getElementsByClassName("k-radio-label col s12")[0].click()');
+  }
+
+  /**
+   * @name containsEntityName
+   * @description It will Search Entity using contains Entity Name
+   * @returns Promise
+  */
+   async containsEntityName() {
+    // $('[placeholder="Type the Entity name"]').sendKeys(data.EntitySearch.containsEntityName);
+    $('[placeholder="Type the Entity name"]').sendKeys(this.readExcelEntity(2, 'B8'));
+  }
+
+  /**
+   * @name beginsEntityName
+   * @description It will Search Entity using begins with Entity Name
+   * @returns Promise
+  */
+   async beginsEntityName() {
+    // $('[placeholder="Type the Entity name"]').sendKeys(data.EntitySearch.beginsEntityName);
+    $('[placeholder="Type the Entity name"]').sendKeys(this.readExcelEntity(2, 'B9'));
+  }
+
+  /**
+  * @name SortCustomerName
+  * @description It will Sort Customer Name field
+  * @returns Promise
+  */
+ async SortCustomerName() {
+  // return await element(by.linkText('CUSTOMER NAME')).click();
+  const ele = await element(by.linkText('CUSTOMER NAME'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortCustomerID
+  * @description It will Sort Customer Name field
+  * @returns Promise
+  */
+ async SortCustomerID() {
+  // return await element(by.linkText('CUSTOMER ID')).click();
+  const ele = await element(by.linkText('CUSTOMER ID'));
+  await await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortInvoice
+  * @description It will Sort Invoice field
+  * @returns Promise
+  */
+ async SortInvoice() {
+  // return await element(by.linkText('INVOICE#')).click();
+  const ele = await element(by.linkText('INVOICE#'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortReceiptNo
+  * @description It will Sort by RECEIPT NUMBER field
+  * @returns Promise
+  */
+ async SortReceiptNo() {
+  // return await element(by.linkText('RECEIPT NUMBER')).click();
+  const ele = await element(by.linkText('RECEIPT NUMBER'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortInvAmt
+  * @description It will Sort by INVOICE AMOUNT field
+  * @returns Promise
+  */
+ async SortInvAmt() {
+  // return await element(by.linkText('INVOICE AMOUNT')).click();
+  const ele = await element(by.linkText('INVOICE AMOUNT'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortAmtDue
+  * @description It will Sort by AMOUNT DUE field
+  * @returns Promise
+  */
+ async SortAmtDue() {
+  // return await element(by.linkText('AMOUNT DUE')).click();
+  const ele = await element(by.linkText('AMOUNT DUE'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortInvDate
+  * @description It will Sort by INVOICE DATE field
+  * @returns Promise
+  */
+ async SortInvDate() {
+  // return await element(by.linkText('INVOICE DATE')).click();
+  const ele = await element(by.linkText('INVOICE DATE'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortContactName
+  * @description It will Sort Contact Name field
+  * @returns Promise
+  */
+ async SortContactName() {
+  // return await element(by.linkText('CONTACT NAME')).click();
+  const ele = await element(by.linkText('CONTACT NAME'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortOrder
+  * @description It will Sort by ORDER# field
+  * @returns Promise
+  */
+ async SortOrder() {
+  // return await element(by.linkText('ORDER#')).click();
+  const ele = await element(by.linkText('ORDER#'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortSubject
+  * @description It will Sort by Subject field
+  * @returns Promise
+  */
+ async SortSubject() {
+  // return await element(by.linkText('SUBJECT')).click();
+  const ele = await element(by.linkText('SUBJECT'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+  * @name SortMatter
+  * @description It will Sort by MATTER field
+  * @returns Promise
+  */
+ async SortMatter() {
+  // return await element(by.linkText('MATTER')).click();
+  const ele = await element(by.linkText('MATTER'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+
+/**
+   * @name filterCustomerName
+   * @description It will  filter search results by Customer Name
+   * @returns Promise
+  */
+   async filterCustomerName(custName) {
+     // custname is taken from webpage
+     await browser.sleep(1000);
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="1"]//input[@type="text"]')).sendKeys(custName);
+    // return $('.k-filter-row [ng-reflect-logical-col-index="1"] [type]').sendKeys(custName);
+    // return $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(2).sendKeys(custName);
+  }
+
+  /**
+   * @name filterCustomerID
+   * @description It will  filter search results by Customer ID
+   * @returns Promise
+  */
+   async filterCustomerID(custId) {
+     // custId is taken from web page
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="2"]//input[@type="text"]')).sendKeys(custId);
+  }
+
+  /**
+   * @name filterInvoive
+   * @description It will filter search results by Invoice
+   * @returns Promise
+  */
+   async filterInvoive(invoice) {
+     // invoice is taken from web page
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="3"]//input[@type="text"]')).sendKeys(invoice);
+  }
+
+  /**
+   * @name filterRecipt
+   * @description It will filter search results by Recipt No
+   * @returns Promise
+  */
+ async filterRecipttNo(recipt) {
+  // invoice is taken from web page
+ return element(by.xpath('//td[@ng-reflect-logical-col-index="4"]//input[@type="text"]')).sendKeys(recipt);
+}
+
+  /**
+   * @name filterInvAmt
+   * @description It will filter search results by Invoice Amount
+   * @returns Promise
+  */
+ async filterInvAmount(invamt) {
+  // invoice is taken from web page
+ return element(by.xpath('//td[@ng-reflect-logical-col-index="5"]//input[@type="text"]')).sendKeys(invamt);
+}
+
+  /**
+   * @name filterAmountDue
+   * @description It will filter search results by Amount Due
+   * @returns Promise
+  */
+ async filterAmountDue(invamt) {
+  // invoice is taken from web page
+ return element(by.xpath('//td[@ng-reflect-logical-col-index="6"]//input[@type="text"]')).sendKeys(invamt);
+}
+
+/**
+   * @name orderNo
+   * @description It will filter search results by Order no
+   * @returns Promise
+  */
+ async contactName(cntName) {
+  return element(by.xpath('//td[@ng-reflect-logical-col-index="8"]//input[@type="text"]')).sendKeys(cntName);
+}
+
+  /**
+   * @name orderNo
+   * @description It will filter search results by Order no
+   * @returns Promise
+  */
+   async orderNo(order) {
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="9"]//input[@type="text"]')).sendKeys(order);
+  }
+
+  /**
+   * @name subject
+   * @description It will filter search results by subject
+   * @returns Promise
+  */
+   async subject(subject) {
+     // subject has taken from webpage
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="10"]//input[@type="text"]')).sendKeys(subject);
+  }
+
+  /**
+   * @name matter
+   * @description It will filter search results by matter
+   * @returns Promise
+  */
+   async matter(matter) {
+    return element(by.xpath('//td[@ng-reflect-logical-col-index="11"]//input[@type="text"]')).sendKeys(matter);
+  }
+
+  /**
+   * @name amtDueDate
+   * @description It will filter search results by matter
+   * @returns Promise
+  */
+   async amtDueDate() {
+    return $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(8);
+  }
+
+  /**
+  * @name closeNonPayment
+  * @description It will Sort by Closed for non-payment
+  * @returns Promise
+  */
+ async closeNonPayment() {
+  return $$('button.k-button.k-outline').get(1).click();
+}
+
+/**
+  * @name activeFilter
+  * @description It will Sort by Closed for non-payment
+  * @returns Promise
+  */
+ async activeFilter() {
+  return $('button.k-button.k-outline.k-state-active').click();
+}
+
+/**
+  * @name closed
+  * @description It will Sort by Closed
+  * @returns Promise
+  */
+ async closed() {
+  return $$('button.k-button.k-outline').get(2).click();
+}
+
+/**
+  * @name pastDue
+  * @description It will Sort by Past Due
+  * @returns Promise
+  */
+ async pastDue() {
+  return $$('button.k-button.k-outline').get(3).click();
+}
+
+/**
+  * @name openCurrent
+  * @description It will Sort by open Current
+  * @returns Promise
+  */
+ async openCurrent() {
+  return $$('button.k-button.k-outline').get(4).click();
+}
+
+/**
+   * @name startDate
+   * @description It will filter search results by start date
+   * @returns Promise
+  */
+   async startDate(startdate) {
+     // date is taken from webpage
+    return $$('input.selection.ng-untouched.ng-pristine.ng-valid').get(2).sendKeys(startdate);
+  }
+
+  /**
+   * @name endDate
+   * @description It will filter search results by end date
+   * @returns Promise
+  */
+   async endDate(enddate) {
+     // date is taken from webpage
+    return $$('input.selection.ng-untouched.ng-pristine.ng-valid').get(2).sendKeys(enddate);
+  }
+
+  /**
+   * @name ClickNumofInvoiceDisplayed
+   * @description It will check Number of invoice in the dropdown
+   * @returns Promise
+   */
+  async ClickNumofInvoiceDisplayed() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select')).click();
+  }
+
+   /**
+   * @name NumofInvoiceDiplayed25
+   * @description It will check Number of invoice in the dropdown as 25
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed25() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[1]')).click();
+  }
+
+  /**
+   * @name NumofInvoiceDiplayed50
+   * @description It will check Number of invoice in the dropdown as 50
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed50() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[2]')).click();
+  }
+
+  /**
+   * @name NumofInvoiceDiplayed75
+   * @description It will check Number of invoice in the dropdown as 75
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed75() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[3]')).click();
+  }
+
+  /**
+   * @name NumofInvoiceDiplayed100
+   * @description It will check Number of invoice in the dropdown as 100
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed100() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[4]')).click();
+  }
+
+  /**
+   * @name receipt
+   * @description It will filter search results by receipt
+   * @returns Promise
+  */
+   async receipt(receiptNo) {
+    return $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(6).sendKeys(receiptNo);
+  }
+
+  /**
+   * @returns data read from excel. First install : 'npm install xlsx'
+   */
+  readExcelEntity(sheet_index, cellnumber) {
+    const XLSX = require('xlsx');
+    const testEnv = browser.params.environment.env;
+    let workbook = null;
+    if (testEnv === 'DEV') {
+    workbook = XLSX.readFile('e2e/entitySearch/testdataEntity_DEV.xlsx');
+    }else if (testEnv === 'QA') {
+    workbook = XLSX.readFile('e2e/entitySearch/testdataEntity_QA.xlsx');
+    }
+    const sheetindex = workbook.SheetNames[sheet_index];
+    const worksheet = workbook.Sheets[sheetindex];
+    const readValue = worksheet[cellnumber];
+    const desired_value = (readValue ? readValue.v : undefined);
+    return desired_value;
+  }
+
+}

@@ -1,0 +1,30 @@
+const { SpecReporter } = require('jasmine-spec-reporter');
+exports.config = {
+  allScriptsTimeout: 11000000, // 3 Hours
+  specs: [
+    './e2e/**/*.e2e-spec.ts',
+  ],
+  
+  capabilities: {
+    'browserName': 'chrome',
+    'extended-debugging': true
+  },
+  chromeDriver:'./chromedriver.exe',
+  directConnect: true,
+  framework: 'jasmine',
+//----------------------------------------------------------------------------------- 
+  suites: {
+    demo: './e2e/demo.e2e-spec.ts',
+  },
+//-----------------------------------------------------------------------------------
+  jasmineNodeOpts: {
+    showColors: true,
+    defaultTimeoutInterval: 11000000, // 3 Hours
+    print: function() {}
+  },
+  SELENIUM_PROMISE_MANAGER: false,
+  onPrepare() {
+    require('ts-node').register();
+    jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
+  }
+};

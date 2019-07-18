@@ -1,0 +1,272 @@
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+import { Statements } from '../statements-search/statements.po';
+import { browser, element, by, $, $$ } from 'protractor';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page : Action_2 -  ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    let state: Statements;
+    beforeAll(async () => {
+        // await browser.waitForAngularEnabled(false) ;
+        app = new AppPage();
+        inv = new Invoices();
+        state = new Statements();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+    });
+    beforeEach(async () => {
+        await browser.sleep(3000);
+    });
+
+    it('should click and verify change customer', async () => {
+        await inv.clickonInvoiceTab();
+        const changeCust = element(by.linkText('NEW SEARCH'));
+        await app.waitForEcClickable(changeCust);
+        await browser.executeScript('arguments[0].click()', changeCust);
+        await expect($('app-change-customer').isDisplayed()).toBeTruthy();
+    });
+    it('should set Customer Number in the search Bar', async () => {
+        await $('[placeholder="Customer ID"]').sendKeys(inv.readExcelInv(1, 'B15'));
+        await $('#set-customer-button').click();
+        await app.waitForMainLoader();
+        await expect($('#collectorInfo-accName-accNumber').getText()).toContain(inv.readExcelInv(1, 'B15'));
+    });
+    it('should click on search button', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+    });
+    it('should select less than 200 invoices and click Print Option', async () => {
+        await browser.sleep(1000);
+        await browser.executeScript('window.scrollTo(0,10000)');
+        const pageElem = $(`[value='100']`);
+        await pageElem.click(); // displays 100 items on page
+        await browser.sleep(1000);
+        await inv.selectInvoiceAll(); // select 100 invoices
+        // await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(3).click()');
+        const invSelected = $('#footer-selected-detail').getText();
+        await expect(invSelected).toEqual('100');
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        await browser.sleep(3000);
+        const PrintSelectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(PrintSelectedInvoice);
+        await PrintSelectedInvoice.click();
+        await app.waitForMainLoader();
+        await state.moveToCurrentTab();
+        await browser.sleep(5000);
+        expect(await browser.getCurrentUrl()).toContain('downloadInvoices');
+        await inv.returnToParentTab();
+    });
+    it('should select 200 invoices and click Print option', async () => {
+        await inv.changeToNextPage();
+        await app.waitForMainLoader();
+        await inv.selectInvoiceAll();
+        // await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.sleep(1000);
+        const invSelected = $('#footer-selected-detail').getText();
+        await expect(invSelected).toEqual('200');
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        await browser.sleep(3000);
+        const PrintSelectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(PrintSelectedInvoice);
+        await PrintSelectedInvoice.click();
+        await app.waitForMainLoader();
+        await state.moveToCurrentTab();
+        await browser.sleep(5000);
+        expect(await browser.getCurrentUrl()).toContain('downloadInvoices');
+        await inv.returnToParentTab();
+    });
+    // The following test case also covers 2 more test cases as below
+    // (1) Select 201 invoices – close the alert and continue selecting more invoices
+    // (2) Select 201 invoices – do not click Print or Email Option__
+    // __and then Changing number of selected records from greater than 201 to less than 201__
+    // __and then going back up to 201 or more
+    it('should select 201 invoices and DO NOT click Print or Email option', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(1, 'B15'));
+        await app.waitForMainLoader();
+        await browser.sleep(4000);
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+        const pageElem = $(`[value='100']`);
+        await pageElem.click(); // displays 100 items on page
+        await browser.sleep(1000);
+        await inv.selectInvoiceAll(); // select 100 invoices
+        await browser.sleep(3000);
+        await inv.changeToNextPage(); // moves to 2nd page
+        await app.waitForMainLoader();
+        await inv.selectInvoiceAll(); // selects another 100 invoices, total 200 invoices
+        await browser.sleep(1000);
+        await inv.changeToNextPage(); // moves to 3rd page
+        await app.waitForMainLoader();
+        // selects only 1 invoice from 3rd page, i.e. total 201 invoices
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.sleep(1000);
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201Errormessage);
+        await $('#toasterComp-cross-icon').click(); // close the warning message
+        const invSelected = $('#footer-selected-detail').getText();
+        await expect(invSelected).toEqual('201');
+        await inv.selectInvoiceAll(); // Continue to select more than 201 invoices, here 300 invoices
+        await browser.sleep(2000);
+        const invSelected300 = $('#footer-selected-detail').getText();
+        await expect(invSelected300).toEqual('300');
+        await browser.sleep(2000);
+        await inv.selectInvoiceAll(); // Select less than 201 invoices, here 200 invoices
+        await app.waitForMainLoader();
+        const invSelected200 = $('#footer-selected-detail').getText();
+        await expect(invSelected200).toEqual('200');
+        await browser.sleep(2000);
+        // Again select 1 more invoice to total 201 invoices
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.sleep(1000);
+        // Close the warning message
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201Errormessage);
+        await $('#toasterComp-cross-icon').click();
+        // Select 2 invoices more to total 203 invoices
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(3).click()');
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(4).click()');
+        const invSelected203 = $('#footer-selected-detail').getText();
+        await expect(invSelected203).toEqual('203');
+    });
+    // The following test case and the above test case also covers the automation of
+    // (1) Select 201 invoices – do not click Print or Email Option and then Customer change or new Search and select 201 invoices
+    it('should select 201 invoices-Click Download selected Invoices', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(1, 'B15'));
+        await app.waitForMainLoader();
+        await browser.sleep(4000);
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+        const pageElem = $(`[value='100']`);
+        await pageElem.click(); // displays 100 items on page
+        await browser.sleep(1000);
+        await inv.selectInvoiceAll(); // select 100 invoices
+        await browser.sleep(3000);
+        await inv.changeToNextPage(); // moves to 2nd page
+        await app.waitForMainLoader();
+        await inv.selectInvoiceAll(); // selects another 100 invoices, total 200 invoices
+        await browser.sleep(1000);
+        await inv.changeToNextPage(); // moves to 3rd page
+        await app.waitForMainLoader();
+        // selects only 1 invoice from 3rd page
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.sleep(1000);
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201Errormessage);
+        await $('#toasterComp-cross-icon').click();
+        const invSelected = $('#footer-selected-detail').getText();
+        await expect(invSelected).toEqual('201');
+        // ****************
+        const ExportGridDropdown = $$('span.k-input').get(1);
+        await app.waitForEcClickable(ExportGridDropdown);
+        await inv.clickonExportGridOptionDropdown();
+        await browser.sleep(2000); // Needed for click dropdown element, action has more faster it wont allow to present dropdown to be active
+        await inv.selectDownloadselectedInvoice();
+        await app.waitForMainLoader();
+        const popupNo = $('div.k-widget');
+        await app.waitForEcVisible(popupNo);
+        expect( $('div.k-widget').isDisplayed()).toBeTruthy();
+        const yesButton = $$('button.k-button').get(8);
+        await app.waitForEcClickable(yesButton);
+        await $$('button.k-button').get(8).click();
+        const selectRemove = $$('div.custom-box-div').get(2);
+        await app.waitForEcClickable(selectRemove);
+        await $$('div.custom-box-div').get(2).click();
+        const EC = browser.ExpectedConditions;
+        const exportButton = element(by.className('k-button k-primary right mt10'));
+        await browser.wait(EC.elementToBeClickable(exportButton), 30000);
+        await(element(by.className('k-button k-primary right mt10')).click());
+        await browser.sleep(5000);   // wait to download file
+        await expect($('div.k-widget').isPresent()).toBeFalsy();
+        await browser.sleep(5000);
+    });
+    // The following test case also contains
+    // (1) Should select 201 invoices-click Print Option
+    it('should select 201 invoices-Click Email Option for same selected invoices', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(1, 'B15'));
+        await app.waitForMainLoader();
+        await browser.sleep(4000);
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.sleep(1000);
+        await expect(($$('span.k-input').get(1)).isDisplayed()).toBeTruthy();
+        const pageElem = $(`[value='100']`);
+        await pageElem.click(); // displays 100 items on page
+        await browser.sleep(1000);
+        await inv.selectInvoiceAll(); // select 100 invoices
+        await browser.executeScript('window.scrollTo(0,100)');
+        await browser.sleep(3000);
+        await inv.changeToNextPage(); // moves to 2nd page
+        await app.waitForMainLoader();
+        await inv.selectInvoiceAll(); // selects another 100 invoices, total 200 invoices
+        await browser.executeScript('window.scrollTo(0,100)');
+        await browser.sleep(1000);
+        await inv.changeToNextPage(); // moves to 3rd page
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,10000)');
+        // selects only 1 invoice from 3rd page
+        await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(2).click()');
+        await browser.sleep(1000);
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201Errormessage);
+        await $('#toasterComp-cross-icon').click();
+        const invSelected = $('#footer-selected-detail').getText();
+        await expect(invSelected).toEqual('201');
+        // **************** email
+        const InvoiceOptionDropdown = $$('span.k-input').get(2);
+        await app.waitForEcClickable(InvoiceOptionDropdown);
+        await inv.clickonInvoiceOptionsDropdown();
+        await expect(($$('li.k-item').get(0)).isDisplayed()).toBeTruthy();
+        const emailSelectedInvoice = $$('li.k-item').get(0);
+        await app.waitForEcClickable(emailSelectedInvoice);
+        await emailSelectedInvoice.click();
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201EmailErrormessage);
+        await $('#toasterComp-cross-icon').click();
+        await browser.sleep(3000);
+        // ***************** print
+        await inv.clickonInvoiceOptionsDropdown();
+        const printSelectedInvoice = $$('li.k-item').get(1);
+        await app.waitForEcClickable(printSelectedInvoice);
+        await printSelectedInvoice.click();
+        await expect($('[ng-reflect-klass="toaster-body"]').getText()).toContain(data.invoice.invoice201EmailErrormessage);
+        await $('#toasterComp-cross-icon').click();
+        await browser.sleep(1000);
+    });
+
+});
+
+

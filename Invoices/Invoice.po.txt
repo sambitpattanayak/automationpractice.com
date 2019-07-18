@@ -1,0 +1,793 @@
+import { browser, by, element, $, $$ } from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+let app: AppPage;
+app = new AppPage();
+export class Invoices {
+
+  /**
+   * @name clickSelectAllCheckbox
+   * @description It will click on Select All check box
+   * @returns Promise
+   */
+  async clickSelectAllCheckbox() {
+    // tslint:disable-next-line:quotemark
+    return element(by.xpath('//span[@class="text-lg csc-secondary-color-dark-gray no-padding"]')).click();
+
+  }
+   /**
+   * @name clickonInvoiceTab
+   * @description It will click on Invoice Tab
+   * @returns Promise
+   */
+  async clickonInvoiceTab() {
+    // tslint:disable-next-line:quotemark
+    // await app.waitForEcClickable(element(by.linkText('INVOICES')));
+    return element(by.linkText('INVOICES')).click();
+  }
+   /**
+   * @name validateCorrectCustomerNumberSearchResult
+   * @description It will the Customer Search Result
+   */
+  async validateCorrectCustomerNumberSearchResult() {
+    // tslint:disable-next-line:quotemark
+     expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain('PROSKAUER ROSE LLP (C/S) (4300043)');
+     expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain('Summarized Invoicing');
+     expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain('CURRENCY:');
+     expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain('OFAC');
+     expect(await $('.contact-text').getText()).toContain('Credit Rep:');
+     // expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).
+     // toContain('Judy.Ellifritz@cscglobal.com');
+  }
+   /**
+   * @name validateMandatoryCustomerSearchResult
+   * @description It will the Mandatory Customer Search Result
+   */
+  async validateMandatoryCustomerSearchResult() {
+    // tslint:disable-next-line:quotemark
+     expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain('A SMALL ORANGE');
+     expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain('7748584');
+     expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain('CURRENCY:');
+     expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain('OFAC');
+     expect(await $('.contact-text').getText()).toContain('Credit Rep:');
+     expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain('@cscglobal.com');
+  }
+   /**
+   * @name validateInvoiceSearchResult
+   * @description It will the Validate the Invoice Search Result
+   */
+  async validateInvoiceSearchResult() {
+    // tslint:disable-next-line:quotemark
+    expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain('PROSKAUER ROSE LLP (C/S)');
+    expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain('4300043');
+    expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain('Summarized Invoicing');
+    expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain('CURRENCY:');
+    expect(await element(by.xpath('//strong[contains(text(),"OFAC:")]')).getText()).toContain('OFAC');
+    expect(await $('.contact-text').getText()).toContain('Credit Rep:');
+    expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).toContain('@cscglobal.com');
+    await await browser.executeScript('window.scrollTo(0,10000)');
+    const inv = await(element(by.className('col no-padding truncate s7')).getText());
+    console.log('Invoice# Selected :: ', inv);
+    expect(await element(by.className('col no-padding truncate s7')).getAttribute('title')).toContain(inv);
+    await browser.sleep(3000);
+    await await browser.executeScript('window.scrollTo(0,0)');
+  }
+    /**
+   * @name validateLayoutOfSearchSectionOfInvoice
+   * @description It will the Validate the Invoice Layout Section
+   */
+  async validateLayoutOfSearchSectionOfInvoice() {
+    expect(await element(by.cssContainingText('.alt', 'Invoice#')).getText()).toBe('Invoice#');
+    expect(await element(by.xpath('//label[contains(text(),"Invoice Status")]')).getText()).toContain('Invoice Status');
+    expect(await element(by.xpath('//label[contains(text(),"Contact Name")]')).getText()).toContain('Contact Name');
+    expect(await element(by.xpath('//label[contains(text(),"Order#")]')).getText()).toContain('Order#');
+    expect(await element(by.xpath('//label[contains(text(),"Date Range")]')).getText()).toContain('Date Range');
+    expect(await element(by.xpath('//label[contains(text(),"Service Area")]')).getText()).toContain('Service Area');
+    expect (await $$('.radio-label').get(0).getText()).toContain('begins with');
+    expect (await $$('.radio-label').get(1).getText()).toContain('contains');
+    expect (await $$('.radio-label').get(2).getText()).toContain('exact');
+    await browser.sleep(3000);
+    await $('span.k-icon.plusMinus.k-i-plus').click();
+    expect(await element(by.xpath('//label[contains(text(),"Entity#")]')).getText()).toContain('Entity#');
+    expect(await element(by.xpath('//label[contains(text(),"Project Ref")]')).getText()).toContain('Project Ref');
+    expect(await element(by.xpath('//label[contains(text(),"Matter Ref")]')).getText()).toContain('Matter Ref');
+    expect(await element(by.xpath('//label[contains(text(),"Summarized Invoice")]')).getText()).toContain('Summarized Invoice');
+    expect(await element(by.xpath('//label[contains(text(),"Matter Ref")]')).getText()).toContain('Matter Ref');
+    expect (await $$('.radio-label').get(3).getText()).toContain('begins with');
+    expect (await $$('.radio-label').get(4).getText()).toContain('contains');
+    expect (await $$('.radio-label').get(5).getText()).toContain('exact');
+ }
+   /**
+   * @name clickOnAdvncToggleBtn
+   * @description It will click on Toggle button
+   * @returns Promise
+   */
+  async clickOnAdvncToggleBtn() {
+    return $('span.k-icon.plusMinus.k-i-plus').click();
+  }
+  /**
+   * @name clickSearchButton
+   * @description It will click on Search Button
+   * @returns Promise
+   */
+  async clickSearchButton() {
+    // await app.waitForEcClickable(element(by.buttonText('Search')));
+    // return element(by.buttonText('Search')).click();
+    await app.waitForEcClickable($('.k-primary-alt'));
+    return $('.k-primary-alt').click();
+    // const ele = element(by.buttonText('Search')).click();
+    // return await browser.executeScript('arguments[0].click()', ele);
+  }
+      /**
+   * @name CustomerNamePopUp
+   * @description It will enter Customer Name in the search option
+   * @returns Promise
+   */
+  async CustomerNamePopUp(CustName: string) {
+        $('[placeholder="Type the Customer name"]').sendKeys(CustName);
+      }
+
+    /**
+   * @name SearchInvoice#
+   * @description It will Search Invoice using Invoice Number
+    */
+  async SearchInvoice(Invoice: string) {
+    // tslint:disable-next-line:quotemark
+        await $$('[placeholder="Invoice#"]').get(0).sendKeys(Invoice);
+      }
+     /**
+   * @name SearchOrderNum
+   * @description It will Search Order using Order Number
+    */
+  async SearchOrderNum(Order: string) {
+        $('[placeholder="Order#"]').sendKeys(Order);
+  }
+    /**
+   * @name clickonStartDateCalendarIcon
+   * @description It will click on Calendar Icon
+   * @returns Promise
+   */
+  async clickonStartdateCalendarIcon() {
+    return $$('span.mydpicon.icon-mydpcalendar').get(0).click();
+  }
+   /**
+   * @name clickonStartDateInput
+   * @description It will Set Calendar Start date
+   */
+  async CalenderStartDate (Start: string) {
+        $('input[placeholder="Start Date"]').sendKeys(Start);
+  }
+     /**
+   * @name clickonEndDateInput
+   * @description It will set on Calendar End date
+   */
+  async CalenderEndDate (End: string) {
+         $('input[placeholder="End Date"]').sendKeys(End);
+  }
+   /**
+   * @name clickonEndDateCalendarIcon
+   * @description It will click on Calendar Icon
+   * @returns Promise
+   */
+  async clickonEnddateCalendarIcon() {
+    return $$('span.mydpicon.icon-mydpcalendar').get(1).click();
+  }
+     /**
+   * @name clickonInvoiceStatusDropdown
+   * @description It will click on Calendar Icon
+   * @returns Promise
+   */
+  async clickonInvoiceStatusDropdown() {
+    return $$('span.k-input').get(0).click();
+  }
+  /**
+   * @name clickonInvoiceStatusDropdownAll
+   * @description It will click on All option from Invoice Status Dropdown
+   * @returns Promise
+   */
+  async clickonInvoiceStatusDropdownAll() {
+    return element(by.xpath('(//li[@class="k-item"])[1]')).click();
+  }
+      /**
+   * @name clickonInvoiceStatusDropdownOpen
+   * @description It will click on Open option from Invoice Status Dropdown
+   * @returns Promise
+   */
+  async clickonInvoiceStatusDropdownOpen() {
+    return $('li.k-item.k-state-focused.k-state-selected').click();
+  }
+        /**
+   * @name clickonInvoiceStatusDropdownClosed
+   * @description It will click on Calendar Icon
+   * @returns Promise
+   */
+  async clickonInvoiceStatusDropdownClosed() {
+    return element(by.xpath('(//li[@class="k-item"])[2]')).click();
+  }
+    /**
+   * @name clickonInvoiceServiceAreaDropdwn
+   * @description It will click on Service Area Dropdown
+   * @returns Promise
+   */
+  async clickonInvoiceServiceAreaDropdwn() {
+    await $$('input.k-input').get(0).click();
+    await browser.sleep(2000);
+    await element(by.xpath('//*[@class="k-animation-container k-animation-container-shown"]/div/span')).click();
+    await element(by.xpath('//*[@class="k-animation-container k-animation-container-shown"]/div/span')).click();
+    await browser.sleep(1000);
+  }
+   /**
+   * @name SearchContactName
+   * @description It will Search Contact Name
+   */
+  async SearchContactName(Contact: string) {
+        $('[placeholder="Contact Name"]').sendKeys(Contact);
+  }
+  /**
+   * @name clickonAdvanceSearchOption
+   * @description It will Search Contact Name with exact radio button selected
+   * @returns Promise
+   */
+  async clickonAdvanceSearchOption() {
+    // tslint:disable-next-line:quotemark
+    return  $('span.k-icon.plusMinus.k-i-plus').click();
+  }
+   /**
+   * @name SearchEntity#
+   * @description It will Search Entity Number under advance search
+   */
+  async SearchEntity(Entity: string) {
+        $('[placeholder="Entity#"]').sendKeys(Entity);
+      }
+    /**
+   * @name ProjectRef
+   * @description It will Search Project ref under advance search
+   */
+  async ProjectRef(Proj: string) {
+        $('[placeholder="Project Ref"]').sendKeys(Proj);
+      }
+
+  /**
+   * @name MatterRef
+   * @description It will Search Matter ref under advance search
+   */
+  async MatterRef(Matter: string) {
+        $('[placeholder="Matter Ref"]').sendKeys(Matter);
+      }
+    /**
+   * @name SetSummerizedInvoice
+   * @description It will Search Summerized Invoice under advance search
+   */
+  async SetSummerizedInvoice(Invoice: string) {
+        element(by.xpath('(//input[@placeholder="Invoice#"])[2]')).sendKeys(Invoice);
+      }
+ /**
+   * @name ClickonMultiInvoice
+   * @description It will Click on Multi invoice icon
+   * @returns Promise
+   */
+  async ClickonMultiInvoice() {
+    return $('a.k-icon').click();
+  }
+
+  // Added by Tanuj
+  /**
+   * @name clickonExportGridOptionDropdown
+   * @description It will click on Export Grid Option Dropdown
+   * @returns Promise
+   */
+  async clickonExportGridOptionDropdown() {
+    return $$('span.k-input').get(1).click();
+  }
+
+  /**
+   * @name selectDownloadGridResults
+   * @description It will select Download Grid Results from dropdown
+   * @returns Promise
+   */
+  async selectDownloadGridResults() {
+    return $$('li.k-item').get(0).click();
+  }
+
+  /**
+   * @name selectDownloadselectedInvoice
+   * @description It will select Download selected Invoice Grid dropdown
+   * @returns Promise
+   */
+  async selectDownloadselectedInvoice() {
+    return $$('li.k-item').get(1).click();
+  }
+
+  /**
+   * @name selectInvoice
+   * @description It will select checkbox for Invoice
+   * @returns Promise
+   */
+  async selectInvoice() {
+    return await browser.executeScript('document.getElementsByClassName("k-checkbox-label").item(1).click()');
+  }
+   /**
+   * @name ClickServiceAreaUCCOption
+   * @description It will Search UCC option from Service Area Dropdown
+   * @returns Promise
+   */
+  async ClickServiceAreaUCCOption() {
+    return element(by.xpath('//*[@id="undefined-UCC"]')).click();
+  }
+   /**
+   * @name ClickServiceAreaRealEstates
+   * @description It will Search RealEstates option from Service Area Dropdown
+   * @returns Promise
+   */
+  async ClickServiceAreaRealEstates() {
+    return element(by.xpath('//*[@id="undefined-RES"]')).click();
+  }
+   /**
+   * @name RepresentationandIDServices
+   * @description It will Search Representation and ID Services option from Service Area Dropdown
+   * @returns Promise
+   */
+  async ClickRepResentationandIDServices() {
+    return element(by.xpath('//*[@id="undefined-REN"]')).click();
+  }
+   /**
+   * @name CorpandLegalServices
+   * @description It will Search Corp & Legal Services option from Service Area Dropdown
+   * @returns Promise
+   */
+  async ClickCorpandLegalServices() {
+    return element(by.xpath('//*[@id="undefined-CLS"]')).click();
+  }
+
+     /**
+   * @name clickDomainNameServices
+   * @description It will Search Domain Name Services option from Service Area Dropdown
+   * @returns Promise
+   */
+  async clickDomainNameServices() {
+    return element(by.xpath('//*[@id="undefined-DOM"]')).click();
+  }
+   /**
+   * @name ServiceAreaAllDropdown
+   * @description It will Search Representation and IDServices option from Service Area Dropdown
+   * @returns Promise
+   */
+  async ClickServiceAreaAllDropdown() {
+    // return element(by.xpath('//span[contains(text(),"ALL")]')).click();
+    return element(by.xpath('//span[@class="multiselectall multiselectall-inActive"]')).click();
+  }
+  /**
+   * @name NumofInvoiceDiplayed
+   * @description It will check Number of invoice in the dropdown
+   * @returns Promise
+   */
+  async ClickNumofInvoiceDiplayed() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select')).click();
+  }
+   /**
+   * @name NumofInvoiceDiplayed25
+   * @description It will check Number of invoice in the dropdown as 25
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed25() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[1]')).click();
+  }
+    /**
+   * @name NumofInvoiceDiplayed50
+   * @description It will check Number of invoice in the dropdown as 50
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed50() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[2]')).click();
+  }
+  /**
+   * @name NumofInvoiceDiplayed75
+   * @description It will check Number of invoice in the dropdown as 75
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed75() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[3]')).click();
+  }
+  /**
+   * @name NumofInvoiceDiplayed100
+   * @description It will check Number of invoice in the dropdown as 100
+   * @returns Promise
+   */
+  async NumofInvoiceDiplayed100() {
+    return element(by.xpath('//kendo-pager-page-sizes[@class="k-pager-sizes k-label"]/select/option[4]')).click();
+  }
+  /**
+   * @name NavigateLastPage
+   * @description It will Navigate to the last page
+   * @returns Promise
+   */
+  async NavigateLastPage() {
+    return $('span.k-icon.k-i-seek-e').click();
+  }
+  /**
+   * @name NavigateFirstPage
+   * @description It will Navigate to the First page
+   * @returns Promise
+   */
+  async NavigateFirstPage() {
+    return $('span.k-icon.k-i-seek-w').click();
+  }
+   /**
+   * @name Navigate2ndPage
+   * @description It will click on second page
+   * @returns Promise
+   */
+  async Navigate2ndPage() {
+    return element(by.xpath('//ul[@class="k-pager-numbers k-reset"]/li[2]')).click();
+  }
+    /**
+   * @name Navigate2ndPage
+   * @description It will click on Third page
+   * @returns Promise
+   */
+  async Navigate3rdPage() {
+    return element(by.xpath('//ul[@class="k-pager-numbers k-reset"]/li[3]')).click();
+  }
+  /**
+  * @name ClickMultipleReceiptCursor
+  * @description It will click on cursor of Multiple receipt
+  * @returns Promise
+  */
+ async ClickMultipleReceiptCursor() {
+  //  return $('span.k-icon.k-i-plus-circle.cursor-pointer').click();
+  await await browser.executeScript('document.getElementsByClassName("k-icon k-i-plus-circle cursor-pointer").item(0).click()');
+ }
+   /**
+  * @name ClickOnMultipleReceipt
+  * @description It will click on 1st receipt on expanding Multiple receipt
+  * @returns Promise
+  */
+ async ClickOnMultipleReceipt() {
+    const ele = await element(by.xpath('(//td[5]/span[2]/span[2]/div/a)[1]'));
+    return await browser.executeScript('arguments[0].click()', ele);
+}
+   /**
+  * @name ClickOnMultipleReceiptCloseBtn
+  * @description It will click on close button of receipt dialog
+  * @returns Promise
+  */
+ async ClickOnMultipleReceiptCloseBtn() {
+  return $('a.k-dialog-close').click();
+}
+  /**
+  * @name ClickOnSelectAllCheckbox
+  * @description It will click on checkbox all
+  * @returns Promise
+  */
+ async ClickOnSelectAllCheckbox() {
+  const ele = $$('label.k-checkbox-label').get(1);
+  return await browser.executeScript('arguments[0].click()', ele);
+}
+  /**
+  * @name ClickOnSelectInvoiceCheckbox
+  * @description It will click on Multiple receipt
+  * @returns Promise
+  */
+ async ClickOnSelectInvoiceCheckbox() {
+  const ele = $$('label.k-checkbox-label').get(2);
+  return await browser.executeScript('arguments[0].click()', ele);
+}
+  /**
+  * @name SortInvoiceAmt
+  * @description It will Sort the Invoice Amount field
+  * @returns Promise
+  */
+ async SortInvoiceAmt() {
+  const ele = await element(by.linkText('INVOICE AMOUNT'));
+  await browser.executeScript('arguments[0].click()', ele);
+  //  return element(by.linkText('INVOICE AMOUNT')).click();
+}
+  /**
+  * @name SortInvoiceDate
+  * @description It will Sort Invoice Amount field
+  * @returns Promise
+  */
+ async SortInvoiceDate() {
+  //  element(by.linkText('INVOICE DATE')).click();
+   const ele = await element(by.linkText('INVOICE DATE'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+ /**
+  * @name SortOrderNum
+  * @description It will Sort ORDER# Num field
+  * @returns Promise
+  */
+ async SortOrderNum() {
+  // await element(by.linkText('ORDER#')).click();
+  // return browser.driver.findElement(by.linkText('ORDER#')).click();
+  const ele = await element(by.linkText('ORDER#'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortInvoice
+  * @description It will Sort Invoice field
+  * @returns Promise
+  */
+ async SortInvoice() {
+  // return browser.driver.findElement(by.linkText('INVOICE#')).click();
+  const ele = await element(by.linkText('INVOICE#'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortReceipt
+  * @description It will Sort Receipt field
+  * @returns Promise
+  */
+ async SortReceipt() {
+  // return browser.driver.findElement(by.linkText('RECEIPT#')).click();
+  const ele = await element(by.linkText('RECEIPT#'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortAmountDue
+  * @description It will Sort Receipt field
+  * @returns Promise
+  */
+ async SortAmountDue() {
+  // return browser.driver.findElement(by.linkText('AMOUNT DUE')).click();
+  const ele = await element(by.linkText('AMOUNT DUE'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortDueDate
+  * @description It will Sort Due date field
+  * @returns Promise
+  */
+ async SortDueDate() {
+  // return browser.driver.findElement(by.linkText('DUE DATE')).click();
+  const ele = await element(by.linkText('DUE DATE'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortOnSubject
+  * @description It will Sort Subject field
+  * @returns Promise
+  */
+ async SortOnSubject() {
+  // return browser.driver.findElement(by.linkText('SUBJECT')).click();
+  const ele = await element(by.linkText('SUBJECT'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortOnMatter
+  * @description It will Sort Matter field
+  * @returns Promise
+  */
+ async SortOnMatter() {
+  // return browser.driver.findElement(by.linkText('MATTER')).click();
+  const ele = await element(by.linkText('MATTER'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+/**
+  * @name SortOnContactName
+  * @description It will Sort Contact Name field
+  * @returns Promise
+  */
+ async SortOnContactName() {
+  // return browser.driver.findElement(by.linkText('CONTACT NAME')).click();
+  const ele = await element(by.linkText('CONTACT NAME'));
+  await browser.executeScript('arguments[0].click()', ele);
+}
+  /**
+   * @name FilterInvoiceAmt
+   * @description It will Filter Invoice Amt in Search grid
+    */
+   async FilterInvoiceAmt(InvoiceAmt: string) {
+         $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(6).sendKeys(InvoiceAmt);
+      }
+   /**
+   * @name FilterAmtDue
+   * @description It will Filter Invoice Amt in Search grid
+    */
+   async FilterAmtDue(amountDue: string) {
+    $('.k-filter-row [ng-reflect-logical-col-index="6"] [type]').sendKeys(amountDue);
+ }
+  /**
+   * @name FilterBrand
+   * @description It will Filter Brand in Search grid
+    */
+   async FilterBrand(Brand: string) {
+    $$('input.k-textbox.ng-untouched.ng-pristine.ng-valid').get(10).sendKeys(Brand);
+ }
+  /**
+   * @name ClickOnOpenCurrent
+   * @description It will Click on Opencurrent Label
+    */
+   async ClickOnOpenCurrent() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.INVOICE_STATUS_OPEN"]')).click();
+  }
+    /**
+   * @name ClickOnPastDue
+   * @description It will Click on Past Due Label
+    */
+   async ClickOnPastDue() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.INVOICE_STATUS_PASTDUE"]')).click();
+  }
+  /**
+   * @name ClickOnCloseLabel
+   * @description It will Click on Close Label
+    */
+   async ClickOnCloseLabel() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.INVOICE_STATUS_CLOSED"]')).click();
+  }
+    /**
+   * @name ClickOnAllLabel
+   * @description It will Click on All Label
+    */
+   async ClickOnAllLabel() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.INVOICE_STATUS_ALL"]')).click();
+  }
+      /**
+   * @name ClickOnClosedForNP
+   * @description It will Click on Closed for Non-payment link
+    */
+   async ClickOnClosedForNP() {
+    return browser.driver.findElement(by.xpath('//button[@id="componentVariables.INVOICE_STATUS_CLOSEDNP"]')).click();
+  }
+
+  // Added by Tanuj
+  /**
+   * @name clickonInvoiceOptionsDropdown
+   * @description It will click on Invoice Option Dropdown
+   * @returns Promise
+   */
+  async clickonInvoiceOptionsDropdown() {
+    return $$('span.k-input').get(2).click();
+  }
+
+  /**
+   * @name selectInvoiceAll
+   * @description It will select checkbox for selecting all Invoices in Invoice Search
+   * @returns Promise
+   */
+  async selectInvoiceAll() {
+    await await browser.executeScript('window.scrollTo(0,10000)');
+    return await browser.executeScript('document.getElementsByClassName("k-checkbox-label")[1].click()');
+  }
+
+   /**
+   * @name selectAllInvoices
+   * @description It will select checkbox for selecting all Invoices in Payments Search
+   * @returns Promise
+   */
+  async selectAllInvoices() {
+    await await browser.executeScript('window.scrollTo(0,10000)');
+    return await browser.executeScript('document.getElementsByClassName("k-checkbox-label")[0].click()');
+  }
+
+
+  /**
+   * @name enterEmail
+   * @description It will type email address
+   */
+  async enterEmail (email: string) {
+    $('input[placeholder="Enter email address(es)"]').sendKeys(email);
+}
+
+ /**
+   * @name enterEmail
+   * @description It will type email body
+   * @returns Promise
+   */
+  async enterBody (body: string) {
+    await $('textarea').click();
+    await $('textarea').clear();
+    await $('textarea').sendKeys(body);
+    return await $('[for="select-consolidated"]').click();
+}
+
+
+/**
+=======
+ /**
+   * @name clickcustnamebeginradionbtn
+   * @description It will click on BeginWith Radio Button of Customer Name in invoice page
+   * @returns Promise
+   */
+  async clickcustnamebeginradionbtn() {
+     const ele = await $$('.radio-label').get(0);
+    return await browser.executeScript('arguments[0].click()', ele);
+  }
+   /**
+   * @name clickcustnamecontainsradionbtn
+   * @description It will click on Conatains Radio Button of Customer Name in invoice page
+   * @returns Promise
+   */
+  async clickcustnamecontainsradionbtn() {
+    const ele = await $$('.radio-label').get(1);
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+   /**
+   * @name clickcustnameexactradionbtn
+   * @description It will click on exact Radio Button of Customer Name in invoice page
+   * @returns Promise
+   */
+  async clickcustnameexactradionbtn() {
+    const ele = await $$('.radio-label').get(2);
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+   /**
+   * @name clickMatterRefBeginRadioBtn
+   * @description It will click on conatain Radio Button of Matter in invoice page
+   * @returns Promise
+   */
+  async clickMatterRefBeginRadioBtn() {
+    const ele = await $$('.radio-label').get(3);
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+  /**
+   * @name clickMatterRefContainsRadioBtn
+   * @description It will click on Exact Radio Button of Matter in invoice page
+   * @returns Promise
+   */
+  async clickMatterRefContainsRadioBtn() {
+    const ele = await $$('.radio-label').get(4);
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+  /**
+   * @name clickMatterRefExactRadioBtn
+   * @description It will click on begin Radio Button of Matter in invoice page
+   * @returns Promise
+   */
+  async clickMatterRefExactRadioBtn() {
+    const ele = await $$('.radio-label').get(5);
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+  /**
+   * @name clickcustnamebeginradionbtn
+   * @description It will click on BeginWith Radio Button of Customer Name in invoice page
+   * @returns Promise
+   */
+  async clickgetChangeCustomer() {
+     const ele = await element(by.linkText('NEW SEARCH'));
+   return await browser.executeScript('arguments[0].click()', ele);
+ }
+ /**
+
+   * @returns data read from excel. First install : 'npm install xlsx'
+   */
+  readExcelInv(sheet_index, cellnumber) {
+    const XLSX = require('xlsx');
+    const testEnv = browser.params.environment.env;
+    let workbook = null;
+    if (testEnv === 'DEV') {
+    workbook = XLSX.readFile('e2e/invoices/testdataInvoices_DEV.xlsx');
+    }else if (testEnv === 'QA') {
+    workbook = XLSX.readFile('e2e/invoices/testdataInvoices_QA.xlsx');
+    }
+    const sheetindex = workbook.SheetNames[sheet_index];
+    const worksheet = workbook.Sheets[sheetindex];
+    const readValue = worksheet[cellnumber];
+    const desired_value = (readValue ? readValue.v : undefined);
+    return desired_value;
+  }
+
+    /**
+   * @name changeToNextPage
+   * @description It will select 200 checkbox for selecting Invoices in Invoice Search
+   * @returns Promise
+   */
+  async changeToNextPage() {
+    // await await browser.executeScript('window.scrollTo(0,10000)');
+    // const pageElem = $(`[value='100']`);
+    // pageElem.click();
+    const nextElem = $(`kendo-pager-next-buttons > [ng-reflect-ng-class='\[object Object\]']:nth-of-type(1)`);
+    return nextElem.click();
+  }
+
+    /**
+* @name returnToParentTab
+* @description It will return screen to parent tab
+* @returns Action
+*/
+async returnToParentTab() {
+  browser.getAllWindowHandles().then(function (handles) {
+  browser.driver.switchTo().window(handles[0]);
+  });
+}
+}

@@ -1,0 +1,329 @@
+import {element, browser, $, by, $$, protractor} from 'protractor';
+import { AppPage } from '../app.po';
+import { Invoices } from './invoices.po';
+import { PaymentSearch } from '../payment/paymentSearch.po';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+
+describe('iReceivable Invoices Page: Invoice Search - ', () => {
+    let app: AppPage;
+    let inv: Invoices;
+    let paysrc: PaymentSearch;
+    const sortasc = $('span.k-icon.k-i-sort-asc-sm');
+    const sortdesc = $('span.k-icon.k-i-sort-desc-sm');
+    beforeAll(async () => {
+        app = new AppPage();
+        inv = new Invoices();
+        paysrc = new PaymentSearch ();
+        await app.appLogin(testEnv, userType);
+        await app.waitForUrlToChangeTo('dashboard');
+        await app.cancelCustomerOrInvoice();
+        await app.waitForMainLoader();
+        const linkPayment = element(by.linkText('INVOICES'));
+        await app.waitForEcClickable(linkPayment);
+        await inv.clickonInvoiceTab();
+        console.log('before all completed.');
+    });
+    afterAll(async () => {
+        await app.appLogout();
+     });
+
+    beforeEach(async () => {
+    await browser.sleep(4000);
+    });
+
+    it('Should set the context using Invoice# in Invoice History Page', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(null , inv.readExcelInv(0, 'B13'));
+        await app.waitForMainLoader();
+        // tslint:disable-next-line:quotemark
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Name);
+        expect(await element(by.id('collectorInfo-accName-accNumber')).getText()).toContain(data.customersearchresult.Acc_Num);
+        expect(await element(by.linkText('Summarized Invoicing')).getText()).toContain(data.customersearchresult.Billing_icon);
+        expect(await element(by.xpath('//strong[contains(text(),"CURRENCY:")]')).getText()).toContain(data.customersearchresult.Currency);
+        expect(await element(by.xpath('//strong[contains(text(),"OFAC: OK")]')).getText()).toContain(data.customersearchresult.OFAC_Status);
+        expect(await element(by.xpath('//strong[@class="contact-text"]')).getText()).toContain(data.customersearchresult.Contact);
+        expect(await element(by.xpath('//span[@class="csc-tertiary-color-dark-blue-gray"]')).getText()).
+        toContain(data.customersearchresult.Email);
+        await browser.executeScript('window.scrollTo(0,200)');
+        const inv1 = await($$('span.col.no-padding.truncate').get(0).getText());
+        console.log('Invoice# Selected :: ', inv1);
+        expect(await $$('span.col.no-padding.truncate').get(0).getAttribute('title')).toContain(inv1);
+        await browser.executeScript('window.scrollTo(0,0)');
+        await browser.sleep(2000);
+
+    });
+    it('Should verify the layout of Search section for CSC users', async () => {
+        await app.waitForMainLoader();
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(null , inv.readExcelInv(0, 'B13'));
+        await app.waitForMainLoader();
+        expect(await element(by.cssContainingText('.alt', 'Invoice#')).getText()).toBe(data.invoice_Layout.Inv);
+        expect(await element(by.xpath('//label[contains(text(),"Invoice Status")]')).getText()).toContain(data.invoice_Layout.Inv_Status);
+        expect(await element(by.xpath('//label[contains(text(),"Contact Name")]')).getText()).toContain(data.invoice_Layout.cnct);
+        expect(await element(by.xpath('//label[contains(text(),"Order#")]')).getText()).toContain(data.invoice_Layout.order);
+        expect(await element(by.xpath('//label[contains(text(),"Date Range")]')).getText()).toContain(data.invoice_Layout.dtrange);
+        expect(await element(by.xpath('//label[contains(text(),"Service Area")]')).getText()).toContain(data.invoice_Layout.Serv_Area);
+        expect (await $$('.radio-label').get(0).getText()).toContain(data.invoice_Layout.radio_lable1);
+        expect (await $$('.radio-label').get(1).getText()).toContain(data.invoice_Layout.radio_lable2);
+        expect (await $$('.radio-label').get(2).getText()).toContain(data.invoice_Layout.radio_lable3);
+        const togglebtn = $('span.k-icon.plusMinus.k-i-plus');
+        await app.waitForEcClickable(togglebtn);
+        await inv.clickOnAdvncToggleBtn();
+        expect(await element(by.xpath('//label[contains(text(),"Entity#")]')).getText()).toContain(data.invoice_Layout.advnc_entity);
+        expect(await element(by.xpath('//label[contains(text(),"Project Ref")]')).getText()).toContain(data.invoice_Layout.advnc_pref);
+        expect(await element(by.xpath('//label[contains(text(),"Matter Ref")]')).getText()).toContain(data.invoice_Layout.advnc_mref);
+        expect(await element(by.xpath('//label[contains(text(),"Summarized Invoice")]')).
+        getText()).toContain(data.invoice_Layout.advnc_Summarized_Invoice);
+        expect (await $$('.radio-label').get(3).getText()).toContain(data.invoice_Layout.radio_lable1);
+        expect (await $$('.radio-label').get(4).getText()).toContain(data.invoice_Layout.radio_lable2);
+        expect (await $$('.radio-label').get(5).getText()).toContain(data.invoice_Layout.radio_lable3);
+
+    });
+    it('Should Search Invoice using invoice Number', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.SearchInvoice(inv.readExcelInv(0, 'B13'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        await browser.executeScript('window.scrollTo(0,200)');
+        const inv1 = await($$('span.col.no-padding.truncate').get(0).getText());
+        console.log('Invoice# Selected :: ', inv1);
+        expect(await $$('span.col.no-padding.truncate').get(0).getAttribute('title')).toContain(inv1);
+        await browser.sleep(3000);
+        await browser.executeScript('window.scrollTo(0,0)');
+    });
+    it('Should Search Invoice using Date Range', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonStartdateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await inv.CalenderStartDate(inv.readExcelInv(0, 'B14'));
+        await browser.sleep(1000);
+        await inv.clickonEnddateCalendarIcon();
+        expect(await element(by.xpath('//table[@class="caltable"]')).isDisplayed()).toBeTruthy();
+        await inv.CalenderEndDate(inv.readExcelInv(0, 'B15'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const invdt = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[9]')).getText());
+        console.log('Invoice#End Date Selected :: ', invdt);
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[9]/span')).getAttribute('title')).toContain(invdt);
+    });
+    it('Should Search Invoice using Order Number', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.SearchOrderNum(inv.readExcelInv(0, 'B16'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const OrderNo = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[11]')).getText());
+        console.log('Invoice#Order Number Selected :: ', OrderNo);
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[11]/span')).getAttribute('title')).toContain(OrderNo);
+    });
+    it('Should search Invoices using Customer Contact Name and search option as Begins With', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickcustnamebeginradionbtn();
+        await inv.SearchContactName(inv.readExcelInv(0, 'B17'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const cntct = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]')).getText());
+        console.log('Invoice#Order Number Selected :: ', cntct);
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]/span')).
+        getAttribute('title')).toContain(data.invoice.SearchContactName);
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices using Customer Contact Name and search option as Contains', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickcustnamecontainsradionbtn();
+        await inv.SearchContactName(inv.readExcelInv(0, 'B17'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const cntct = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]')).getText());
+        console.log('Invoice#Order Number Selected :: ', cntct);
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]/span')).
+        getAttribute('title')).toContain(data.invoice.SearchContactName);
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices using Customer Contact Name and search option as Exact', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickcustnameexactradionbtn();
+        await inv.SearchContactName(inv.readExcelInv(0, 'B18'));
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        const cntct = await(element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]')).getText());
+        console.log('Invoice#Order Number Selected :: ', cntct);
+        expect(await element(by.xpath('//tbody[@role="presentation"]/tr[1]/td[10]/span')).
+        getAttribute('title')).toContain(data.invoice.SearchContactName);
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+    });
+    it('Should Search Invoices by Selecting Invoice Status as OPEN', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownOpen();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices by Selecting Invoice Status as Closed', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownClosed();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices by Selecting Invoice Status as All', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(0, 'B19'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+    });
+    it('Should Search Invoices by Selecting Service Area as UCC', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceServiceAreaDropdwn();
+        await browser.sleep(2000);
+        await inv.ClickServiceAreaUCCOption();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices by Selecting Service Area as Real Estates', async () => {
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceServiceAreaDropdwn();
+        await browser.sleep(2000);
+        await inv.ClickServiceAreaRealEstates();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices by Selecting Service Area as Representation and ID Services', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B5'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceServiceAreaDropdwn();
+        await browser.sleep(2000);
+        await inv.ClickRepResentationandIDServices();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+        await paysrc.clickOnClearAll();
+    });
+    it('Should Search Invoices by Selecting Service Area as Corp and Legal Services', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(0, 'B19'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceServiceAreaDropdwn();
+        await browser.sleep(2000);
+        await inv.ClickCorpandLegalServices();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+    });
+    it('Should Search Invoices by Selecting Service Area as Domain Name Services', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(inv.readExcelInv(1, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceServiceAreaDropdwn();
+        await browser.sleep(2000);
+        await inv.clickDomainNameServices();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+    });
+    it('Should Search Invoices by Selecting Service Area as ALL', async () => {
+        await inv.clickgetChangeCustomer();
+        expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+        await app.setCustomerOrInvoice(app.readExcel(2, 'B2'));
+        await app.waitForMainLoader();
+        await inv.clickonInvoiceStatusDropdown();
+        await browser.sleep(1000);
+        await inv.clickonInvoiceStatusDropdownAll();
+        await browser.sleep(1000);
+        await inv.clickSearchButton();
+        await app.waitForMainLoader();
+        expect(await $('kendo-pager-page-sizes.k-pager-sizes.k-label').isDisplayed()).toBeTruthy();
+        expect(await $('div.k-grid-aria-root').isDisplayed()).toBeTruthy();
+    });
+});

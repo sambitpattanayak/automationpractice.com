@@ -1,0 +1,99 @@
+import { browser, by, element, $, $$ } from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+let app: AppPage;
+app = new AppPage();
+export class Statements {
+
+   /**
+   * @name clickonStatementsTab
+   * @description It will click on Invoice Tab
+   * @returns Promise
+   */
+  async clickonStatementsTab() {
+    // tslint:disable-next-line:quotemark
+    await element(by.linkText('STATEMENTS')).click();
+  }
+
+  /**
+   * @name changeClient
+   * @description It will change to a Client which has open invoices and balance due in multiple service areas.
+   * @returns Action
+   */
+  async changeClientwithMultipleServiceArea() {
+    await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B2'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const changedclient = await $('#collectorInfo-accName-accNumber').getText();
+    expect( changedclient).toContain(app.readExcel(2, 'B2'));
+    }
+
+  async waitForPageUrltoChange() {
+    await app.waitForMainLoader();
+    await browser.sleep(15000);
+    const title = await browser.getCurrentUrl();
+    await expect(await title).toContain('downloadStatement');
+  }
+     /**
+   * @name returnToParentTab
+   * @description It will return screen to parent tab
+   * @returns Action
+   */
+  async returnToParentTab() {
+    browser.getAllWindowHandles().then(function (handles) {
+    browser.driver.switchTo().window(handles[0]);
+    });
+  }
+
+      /**
+   * @name moveToCurrentTab
+   * @description It will move all the actions into new opened tab
+   * @returns Action
+   */
+  async moveToCurrentTab() {
+    browser.getAllWindowHandles().then(function (handles) {
+    browser.driver.switchTo().window(handles[1]);
+    });
+  }
+  async checkStatements() {
+    await browser.executeScript('window.scrollTo(0,433)');
+    const checkboxes = element.all(by.className('k-checkbox-label pt0'));
+    const checkboxes_count = await checkboxes.count();
+    for (let _i = 0; _i < checkboxes_count; _i++) {
+    if (_i === 1) {
+    await console.log('Statements Not Available for Domain Name Services');
+    }else {
+    await expect(element(by.xpath('//button[@class="k-button k-primary-alt mt10 mr5 mb10 ml5 right col s11"]')).isEnabled()).toBeFalsy();
+    const actual_checkbox = await element.all(by.className('k-checkbox-label pt0')).get(_i);
+    await browser.executeScript('arguments[0].click();', actual_checkbox);
+    await browser.sleep(2000);
+    await (element(by.xpath('//button[@class="k-button k-primary-alt mt10 mr5 mb10 ml5 right col s11"]'))).click();
+    await browser.sleep(5000);
+    await this.moveToCurrentTab();
+    await this.waitForPageUrltoChange();
+    await this.returnToParentTab();
+    await browser.sleep(3000);
+          }
+                                                  }
+    }
+    async checkMultipleStatements() {
+      await browser.executeScript('window.scrollTo(0,433)');
+      await expect(element(by.xpath('//button[@class="k-button k-primary-alt mt10 mr5 mb10 ml5 right col s11"]')).isEnabled()).toBeFalsy();
+      const checkboxes = element.all(by.className('k-checkbox-label pt0'));
+      const checkboxes_count = await checkboxes.count();
+      for (let _i = 0; _i < checkboxes_count; _i++) {
+      if (_i === 1) {
+          await console.log('Statements Not Available for Domain Name Services');
+      }else {
+      const actual_checkbox = element.all(by.className('k-checkbox-label pt0')).get(_i);
+      await browser.executeScript('arguments[0].click();', actual_checkbox);
+      await browser.sleep(1000); }
+      }
+      await (element(by.xpath('//button[@class="k-button k-primary-alt mt10 mr5 mb10 ml5 right col s11"]'))).click();
+      await browser.sleep(5000);
+      await this.moveToCurrentTab();
+      await this.waitForPageUrltoChange();
+      await this.returnToParentTab();
+      await browser.sleep(3000);
+      }
+}

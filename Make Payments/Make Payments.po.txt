@@ -1,0 +1,101 @@
+import {element, browser, $, by, $$} from 'protractor';
+import { AppPage } from '../app.po';
+const data = require('../app.e2e-test_data.json');
+let app: AppPage;
+app = new AppPage();
+export class Payment {
+ /**
+   * @name changeClient
+   * @description It will change to a non USD Client
+   * @returns Action
+   */
+  async changeClient() {
+  await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B3'));
+  await app.buttonGoChangeCustomerPopUp().click();
+  await app.waitForMainLoader();
+  const changedclient = await $('#collectorInfo-accName-accNumber').getText();
+  expect( changedclient).toContain(app.readExcel(2, 'B3'));
+  }
+
+// Added by Tanuj
+ /**
+   * @name clickonPaymentTab
+   * @description It will click on Payment Tab
+   * @returns Promise
+   */
+  async clickonPaymentTab() {
+    return element(by.linkText('PAYMENTS')).click();
+  }
+
+  /**
+   * @name changeClienttoDefault
+   * @description It will change to a USD Client
+   * @returns Action
+   */
+  async changeClienttoDefault() {
+    await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B14'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const changedclient = await $('#collectorInfo-accName-accNumber').getText();
+    expect( changedclient).toContain(app.readExcel(2, 'B14'));
+    }
+
+    /**
+   * @name changeToBlockedUser
+   * @description It will change client to Blocked User whose OFAC staus is Blocked
+   * @returns Action
+   */
+  async changeToBlockedUser() {
+    await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B4'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const changedclient = await $('#collectorInfo-accName-accNumber').getText();
+    expect( changedclient).toContain(app.readExcel(2, 'B4'));
+    }
+
+      /**
+   * @returns data read from excel.
+   */
+  readExcelMakePayments(sheet_index, cellnumber) {
+    const XLSX = require('xlsx');
+    const testEnv = browser.params.environment.env;
+    let workbook = null;
+    if (testEnv === 'DEV') {
+    workbook = XLSX.readFile('e2e/make-payment/testdataMakePayments_DEV.xlsx');
+    }else if (testEnv === 'QA') {
+    workbook = XLSX.readFile('e2e/make-payment/testdataMakePayments_QA.xlsx');
+    }
+    const sheetindex = workbook.SheetNames[sheet_index];
+    const worksheet = workbook.Sheets[sheetindex];
+    const readValue = worksheet[cellnumber];
+    const desired_value = (readValue ? readValue.v : undefined);
+    return desired_value;
+  }
+
+      /**
+   * @name deleteAllInvoicesexceptFirst
+   * @description It will delete all invoices expect 1st invoice while paying
+   * @returns Action
+   */
+  async deleteAllInvoicesexceptFirst() {
+    await browser.executeScript('window.scrollTo(0,433)');
+    const invs = await $('.k-pager-info').getText();
+    const split1 = invs.split('of ')[1];
+    const invoices_count = split1.split(' items')[0];
+    const actual_count = +invoices_count;
+    for (let _i = 1; _i < actual_count; _i++) {
+    await browser.executeScript('document.getElementsByClassName("c-i-cancel text-xl payment-cancel").item(0).click()'); }
+  }
+
+  /**
+   * @name cancelPaymentReceiptCreationPopup
+   * @description closes payment receipt creation pop up message
+   * @returns {!webdriver.promise.Promise} Promise
+   */
+  async cancelPaymentReceiptCreationPopup() {
+    try {
+      await element(by.xpath('//span[@class="c-i-cancel_1 text-xl cursor-pointer right cross-icon"]')).click();
+    }catch (e) {
+    }
+  }
+}

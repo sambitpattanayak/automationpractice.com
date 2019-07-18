@@ -1,0 +1,138 @@
+import { AppPage } from '../app.po';
+import { browser, $, element, by } from 'protractor';
+const data = require('../app.e2e-test_data.json');
+const testEnv = browser.params.environment.env;
+const userType = browser.params.user_type.isExternal;
+describe('iRec Change Cutomer Popup : ', () => {
+  let app: AppPage;
+
+  beforeAll(async () => {
+    await browser.manage().window().maximize();
+    app = new AppPage();
+    await app.appLogin(testEnv, userType);
+    await app.waitForUrlToChangeTo('dashboard');
+    await app.waitForMainLoader();
+    await app.cancelCustomerOrInvoice();
+    await app.waitForMainLoader();
+    console.log('before all completed.');
+  });
+  afterAll(async () => {
+    await app.appLogout();
+  });
+  beforeEach(async () => {
+  await browser.sleep(2000);
+  });
+
+  it('should click New Search link', async () => {
+    await app.getChangeCustomer().click();
+    expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+  });
+
+  it('should verify pop up title to be New Search', async () => {
+    expect(await element(by.className('k-window-title k-dialog-title')).getText()).toBe(data.changeCustomer.static_text1);
+  });
+
+  it('should verify Customer Id and Invoice Number static texts and text fields', async () => {
+    // tslint:disable-next-line:max-line-length
+    expect(await element(by.xpath('//div[@class="k-content k-window-content k-dialog-content"]')).getText()).toContain(data.changeCustomer.static_text2);
+    expect(await element(by.cssContainingText('.alt', 'Customer ID')).getText()).toBe(data.changeCustomer.static_text3);
+    expect(await $('#customer-id-dialog-input').getAttribute('placeholder')).toBe(data.changeCustomer.static_text3);
+    expect(await element(by.cssContainingText('.alt', 'Invoice#')).getText()).toBe(data.changeCustomer.static_text4);
+    expect(await $('#invoice-dialog-input').getAttribute('placeholder')).toBe(data.changeCustomer.static_text4);
+  });
+
+  it('should click on Go Button without entering any value', async () => {
+    await app.buttonGoChangeCustomerPopUp().click();
+    const errorMessage = await element(by.xpath('//div[contains(@class, "toaster-body csc-warning")]')).getText();
+    expect(await errorMessage).toBe(data.changeCustomer.Error_Message1);
+    await app.errorMessageCloseButton().click();
+
+  });
+
+  it('should input incorrect Customer ID and click on Go Button', async () => {
+    await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B8'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const errorMessage = await $('app-toaster .toaster-wrapper').getText();
+    expect(await errorMessage).toBe(data.changeCustomer.Error_Message2);
+    await app.errorMessageCloseButton().click();
+  });
+
+  it('should input incorrect Invoive# and click on Go Button', async () => {
+    await $('#customer-id-dialog-input').clear();
+    // tslint:disable-next-line:quotemark
+    await $('#customer-id-dialog-input').sendKeys(" ");
+    await $('#invoice-dialog-input').sendKeys(app.readExcel(2, 'B11'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const errorMessage = await $('app-toaster .toaster-wrapper').getText();
+    expect(await errorMessage).toBe(data.changeCustomer.Error_Message3);
+    await app.errorMessageCloseButton().click();
+  });
+
+  it('should input incorrect Customer ID and incorrect Invoice Number and click on Go Button', async () => {
+    await $('#customer-id-dialog-input').sendKeys(app.readExcel(2, 'B8'));
+    await app.buttonGoChangeCustomerPopUp().click();
+    await app.waitForMainLoader();
+    const errorMessage = await $('app-toaster .toaster-wrapper').getText();
+    expect(await errorMessage).toBe(data.changeCustomer.Error_Message4);
+    await app.errorMessageCloseButton().click();
+  });
+
+  it('should click Do not Know ID and close the search by customer pop up', async () => {
+    await app.donotKnowIDChangeCustomerPopUp().click();
+    await app.cancelSearchByCustomer();
+    expect(await $('app-change-customer').isDisplayed()).toBeTruthy();
+  });
+
+  it('should click on Do not Know ID and Verify search by customer pop up', async () => {
+    await app.donotKnowIDChangeCustomerPopUp().click();
+    // tslint:disable-next-line:max-line-length
+    expect(await element.all(by.className('k-widget k-window k-dialog ng-trigger ng-trigger-dialogSlideInAppear')).get(1).isDisplayed()).toBeTruthy();
+    expect(await element.all(by.className('k-window-title k-dialog-title')).get(1).getText()).toBe(data.changeCustomer.static_text5);
+    expect(await element(by.cssContainingText('.ng-tns-c14-*', 'Customer Name')));
+    expect(await $('[placeholder="Type the Customer name"]')).toBeTruthy();
+    expect(await $('[value="begins"]')).toBeTruthy();
+    expect(await $('[value="contains"]')).toBeTruthy();
+    expect(await $('[value="exact"]')).toBeTruthy();
+    expect(await element.all(by.className('k-button k-primary right')).get(1).getText()).toBe(data.changeCustomer.static_text6);
+  });
+
+  it('should input incorrect client name for each radio button on search by customer pop up and search', async () => {
+    await $('[placeholder="Type the Customer name"]').sendKeys(app.readExcel(2, 'B7'));
+    await app.validateSearchByCustomerNoResult();
+    await element.all(by.className('k-radio-label entity-radio-label')).get(1).click();
+    await app.validateSearchByCustomerNoResult();
+    await element.all(by.className('k-radio-label entity-radio-label')).get(2).click();
+    await app.validateSearchByCustomerNoResult();
+  });
+
+  it('should input CORRECT client name for each radio button on search by customer pop up and search', async () => {
+    await $('[placeholder="Type the Customer name"]').clear();
+    await $('[placeholder="Type the Customer name"]').sendKeys(app.readExcel(2, 'B6'));
+    await app.searchButton().click();
+    await app.waitForMainLoader();
+    await app.validateCorrectCustomerNameSearchResult();
+
+    await app.donotKnowIDChangeCustomerPopUp().click();
+    await element.all(by.className('k-radio-label entity-radio-label')).get(1).click();
+    await $('[placeholder="Type the Customer name"]').sendKeys(app.readExcel(2, 'B6'));
+    await app.searchButton().click();
+    await app.waitForMainLoader();
+    await app.validateCorrectCustomerNameSearchResult();
+
+    await app.donotKnowIDChangeCustomerPopUp().click();
+    await element.all(by.className('k-radio-label entity-radio-label')).get(0).click();
+    await $('[placeholder="Type the Customer name"]').sendKeys(app.readExcel(2, 'B6'));
+    await app.searchButton().click();
+    await app.waitForMainLoader();
+    await app.validateCorrectCustomerNameSearchResult();
+  });
+
+  it('should close the New Search pop up', async () => {
+    await app.cancelCustomerOrInvoice();
+    const size = await $('app-dashboard').getSize();
+    expect(size['height']).toBe(0);
+    expect(size['width']).toBe(0);
+  });
+});
